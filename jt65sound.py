@@ -37,6 +37,7 @@ def toneswithsync(message, m=1, offset=0):
 			output[x] = synctone
 		else:
 			output[x] = messagetones[messageindex]
-			++messageindex
+			messageindex += 1
+	
 	return output
 
