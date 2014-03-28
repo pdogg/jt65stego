@@ -2,6 +2,8 @@ import numpy as np
 
 ##some functions to calculate the tone values in hz for jt65 messages
 ## key function to call is tonewithsync it does all the work
+## play these at  0.372 s each and you're done :)
+
 
 def tone(number, m=1, offset=0):
 ##return a tone in HZ for the input number specified
