@@ -8,7 +8,7 @@ import numpy as np
 def tone(number, m=1, offset=0):
 ##return a tone in HZ for the input number specified
 #"Each channel symbol generates a tone at frequency 1270.5 + 2.6917 (N+2) m Hz, where N is
-#the integral symbol value, 0 <=N >= 63, and m assumes the values 1, 2, and 4 for JT65 sub-
+#the integral symbol value, 0 <=N <= 63, and m assumes the values 1, 2, and 4 for JT65 sub-
 #modes A, B, and C."
 
 	return offset + 1270.5 + (2.6917 * (number + 2 ) * m)
