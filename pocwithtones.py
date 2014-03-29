@@ -43,7 +43,12 @@ print "\nTones of message:"
 print jtsound.tonepacket(stegedpacket)
 
 print "\nTones to send on wire:"
-print jtsound.toneswithsync(stegedpacket)
+
+tonearray = jtsound.toneswithsync(stegedpacket)
+
+
+print tonearray
+jtsound.outputpygame(tonearray)
 
 recoveredsteg = jts.jtunsteg(stegedpacket,key)
 
