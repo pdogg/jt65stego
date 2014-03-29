@@ -55,7 +55,7 @@ def outputpygame(tones):
   _display_surf = pygame.display.set_mode(size, pygame.HWSURFACE | pygame.DOUBLEBUF)
 
 
-  duration = 1        # in seconds
+  duration = .372        # in seconds
 
   for index in range(0,125):
     #freqency for the left speaker
@@ -80,7 +80,7 @@ def outputpygame(tones):
 	  buf[s][0] = int(round(max_sample*math.sin(2*math.pi*frequency_l*t)))        # left
 	  buf[s][1] = int(round(max_sample*0.5*math.sin(2*math.pi*frequency_r*t)))    # right
 
-    sound = pygame.sndarray.make_sound(buf)
+	  sound = pygame.sndarray.make_sound(buf)
 #play once, then loop forever
     sound.play()
 
