@@ -1,7 +1,9 @@
 import numpy as np
 import pygame
-from pygame.locals import *
 import math
+import wave
+import sys
+import struct
 
 ##some functions to calculate the tone values in hz for jt65 messages
 ## key function to call is tonewithsync it does all the work
@@ -46,7 +48,7 @@ def toneswithsync(message, m=1, offset=0):
 
 def outputpygame(tones):
     
-  size = (1366, 720)
+  size = (20, 20)
 
   bits = 16
 
@@ -55,7 +57,7 @@ def outputpygame(tones):
   _display_surf = pygame.display.set_mode(size, pygame.HWSURFACE | pygame.DOUBLEBUF)
 
 
-  duration = 1     # in seconds
+  duration = .75    # in seconds
 
   for index in range(0,125):
     #freqency for the left speaker
@@ -81,11 +83,38 @@ def outputpygame(tones):
 
 	  sound = pygame.sndarray.make_sound(buf)
 #play once, then loop forever
-    sound.play(0, 327)
-
+    sound.play(0, 329)
 
 
   pygame.quit()
  
+
+def outputwavfile(filename, tones):
+ 
+
+  data_size = 4096
+  frate = 11025.0  # framerate as a float
+  amp = 64000.0     # multiplier for amplitude
+
+
+  wav_file = wave.open(filename, "w")
+
+  nchannels = 1
+  sampwidth = 2
+  framerate = int(frate)
+  nframes = data_size * 126
+  comptype = "NONE"
+  compname = "not compressed"
+
+  wav_file.setparams((nchannels, sampwidth, framerate, nframes, comptype, compname))
   
-  
+  for index in range(0,125):
+    sine_list_x = []
+    for x in range(data_size):
+      sine_list_x.append(math.sin(2*math.pi*tones[index]*(x/frate)))
+    for s in sine_list_x:
+    # write the audio frames to file
+      wav_file.writeframes(struct.pack('h', int(s*amp/2)))
+
+  wav_file.close()
+  return filename

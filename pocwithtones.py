@@ -48,8 +48,8 @@ tonearray = jtsound.toneswithsync(stegedpacket)
 
 
 print tonearray
-jtsound.outputpygame(tonearray)
-
+#jtsound.outputpygame(tonearray)
+jtsound.outputwavfile("/home/pdogg/test.wav", tonearray)
 recoveredsteg = jts.jtunsteg(stegedpacket,key)
 
 print "\nRecovered Stego message : " + str(recoveredsteg)
