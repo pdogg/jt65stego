@@ -92,7 +92,7 @@ def outputpygame(tones):
 def outputwavfile(filename, tones):
  
 
-  data_size = 4096
+  data_size = 4096 #samples per jt65 symbol
   frate = 11025.0  # framerate as a float
   amp = 64000.0     # multiplier for amplitude
 
