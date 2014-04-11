@@ -1,5 +1,4 @@
 import numpy as np
-import pygame
 import math
 import wave
 import sys
@@ -46,47 +45,6 @@ def toneswithsync(message, m=1, offset=0):
 	
 	return output
 
-def outputpygame(tones):
-    
-  size = (20, 20)
-
-  bits = 16
-
-  pygame.mixer.pre_init(44100, -bits, 1, 1024)
-  pygame.init()
-  _display_surf = pygame.display.set_mode(size, pygame.HWSURFACE | pygame.DOUBLEBUF)
-
-
-  duration = .75    # in seconds
-
-  for index in range(0,125):
-    #freqency for the left speaker
-    frequency_l = tones[index]
-    #frequency for the right speaker
-    frequency_r = 0
-
-    #this sounds totally different coming out of a laptop versus coming out of headphones
-
-    sample_rate = 44100
-    n_samples = int(round(duration*sample_rate))
- #   n_samples = 4096
-	#setup our numpy array to handle 16 bit ints, which is what we set our mixer to expect with "bits" up above
-    buf = np.zeros(n_samples, dtype = np.int16)
-    max_sample = 2**(bits - 1) - 1
-
-    for s in range(n_samples):
-	  t = float(s)/sample_rate    # time in seconds
-
-	  #grab the x-coordinate of the sine wave at a given time, while constraining the sample to what our mixer is set to with "bits"
-	  buf[s] = int(round(max_sample*math.sin(2*math.pi*frequency_l*t)))        # left
-#	  buf[s][1] = int(round(max_sample*0.5*math.sin(2*math.pi*frequency_r*t)))    # right
-
-	  sound = pygame.sndarray.make_sound(buf)
-#play once, then loop forever
-    sound.play(0, 329)
-
-
-  pygame.quit()
  
 
 def outputwavfile(filename, tones):
