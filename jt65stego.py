@@ -49,3 +49,34 @@ def enc(msg) :
 def dec(msg) :
 #returns a "decoded" jt65 message based on the supplied message
 	return msg
+
+def jt65tobytes(jt65bytes):
+#Packs 12 byte JT65 message to 9 full bytes suitable for cipher
+	output = np.array(range(9),dtype=np.int32)
+	output[0] = (jt65bytes[0] & 0x3F) << 2 | (jt65bytes[1] & 0x30) >> 4
+	output[1] = (jt65bytes[1] & 0x0F) << 4 | (jt65bytes[2] & 0x3C) >> 2 
+	output[2] = (jt65bytes[2] & 0x03) << 6 | (jt65bytes[3] & 0x3F)
+	output[3] = (jt65bytes[4] & 0x3F) << 2 | (jt65bytes[5] & 0x30) >> 4
+	output[4] = (jt65bytes[5] & 0x0F) << 4 | (jt65bytes[6] & 0x3C) >> 2 
+	output[5] = (jt65bytes[6] & 0x03) << 6 | (jt65bytes[7] & 0x3F)
+	output[6] = (jt65bytes[8] & 0x3F) << 2 | (jt65bytes[9] & 0x30) >> 4
+	output[7] = (jt65bytes[9] & 0x0F) << 4 | (jt65bytes[10] & 0x3C) >> 2 
+	output[8] = (jt65bytes[10] & 0x03) << 6 | (jt65bytes[11] & 0x3F)
+	return output
+
+def bytestojt65(bytes):
+#Unpacks 9 full bytes to 12 byte JT65 message
+	output = np.array(range(12),dtype=np.int32)
+	output[0] = bytes[0] >> 2
+	output[1] = (bytes[0] & 0x03) << 4 | (bytes[1] & 0xF0) >> 4
+	output[2] = (bytes[1] & 0x0F) << 2 | (bytes[2] & 0xB0) >> 6
+	output[3] = bytes[2] & 0x3F
+	output[4] = bytes[3] >> 2
+	output[5] = (bytes[3] & 0x03) << 4 | (bytes[4] & 0xF0) >> 4
+	output[6] = (bytes[4] & 0x0F) << 2 | (bytes[5] & 0xB0) >> 6
+	output[7] = bytes[5] & 0x3F
+	output[8] = bytes[6] >> 2
+	output[9] = (bytes[6] & 0x03) << 4 | (bytes[7] & 0xF0) >> 4
+	output[10] = (bytes[7] & 0x0F) << 2 | (bytes[8] & 0xB0) >> 6
+	output[11] = bytes[8] & 0x3F
+	return output
