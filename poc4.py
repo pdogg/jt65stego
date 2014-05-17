@@ -4,12 +4,15 @@ import numpy as np
 import jt65wrapy as jt
 import jt65stego as jts
 import sys
+import binascii
+from Crypto.Cipher import ARC4
+from Crypto.Hash import SHA
 
 key = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
 
 if len(sys.argv) < 3:
 	print 'poc3.py -- Proof of concept JT65 steganography encoder'
-	print 'Usage: ./poc3.py <intented jt65 message> <secret message> <covernoise>\n'
+	print 'Usage: ./poc3.py <intented jt65 message> <secret message> <covernoise> <cipherkey>\n'
 	sys.exit(1)
 	    
 legitmsg = sys.argv[1]
@@ -30,12 +33,24 @@ print legitpacket
 print "\nSecret message		  : " + secretmsg
 print "Secret message encoded   : " + str(secretjt)
 
-print "\nSecret message stream: " + str(jts.jt65tobytes(secretjt))
-print "\nSecret message stream back: " + str(jts.bytestojt65(jts.jt65tobytes(secretjt)))
+### Encryption 
+cipherkey = sys.argv[4]
+tempkey = SHA.new(cipherkey).digest()
+cipher = ARC4.new(tempkey)
 
-print "Stego with key		: " + str(key)
+packedsecretjt = jts.jt65tobytes(secretjt)
+print "\nPacked secret message: " + str(packedsecretjt)
 
-stegedpacket = jts.jtsteg(legitpacket,secretjt,key)
+crypted = cipher.encrypt(''.join(hex(e)[2:4].decode("hex") for e in packedsecretjt))
+cryptedlist = list(bytearray(crypted))
+print "\nCipher msg: " + str(cryptedlist)
+finalsteg = jts.bytestojt65(cryptedlist)
+print "\nJT65 Encoded cipher: " + str(finalsteg)
+### Encryption end
+
+print "\nStego with key		: " + str(key)
+
+stegedpacket = jts.jtsteg(legitpacket,finalsteg,key)
 stegedpacket = jts.randomcover(stegedpacket,key,covernoise)
 
 print "\nSteged channel packet:"
@@ -45,7 +60,18 @@ recoveredsteg = jts.jtunsteg(stegedpacket,key)
 
 print "\nRecovered Stego message : " + str(recoveredsteg)
 
-print "\nDecoded Stego message : " + jt.decode(recoveredsteg)
+### Decryption
+unpackedsteg = jts.jt65tobytes(recoveredsteg)
+cipherkey = sys.argv[4]
+tempkey = SHA.new(cipherkey).digest()
+cipher = ARC4.new(tempkey)
+decrypted = cipher.decrypt(''.join(hex(e)[2:4].decode("hex") for e in unpackedsteg))
+decryptedlist = list(bytearray(decrypted))
+unpackeddecrypted = jts.bytestojt65(decryptedlist)
+### Decryption end
+
+print "\nRecovered Stego message : " + str(unpackeddecrypted)
+print "\nDecoded Stego message : " + jt.decode(unpackeddecrypted)
 
 print "\n\nDecoded JT65 message : "
 print jt.decode(jt.unprepmsg(stegedpacket))
