@@ -41,7 +41,7 @@ cipher = ARC4.new(tempkey)
 packedsecretjt = jts.jt65tobytes(secretjt)
 print "\nPacked secret message: " + str(packedsecretjt)
 
-crypted = cipher.encrypt(''.join(hex(e)[2:4].decode("hex") for e in packedsecretjt))
+crypted = cipher.encrypt(''.join('{0:02x}'.format(int(e)).decode("hex") for e in packedsecretjt))
 cryptedlist = list(bytearray(crypted))
 print "\nCipher msg: " + str(cryptedlist)
 finalsteg = jts.bytestojt65(cryptedlist)
@@ -65,7 +65,7 @@ unpackedsteg = jts.jt65tobytes(recoveredsteg)
 cipherkey = sys.argv[4]
 tempkey = SHA.new(cipherkey).digest()
 cipher = ARC4.new(tempkey)
-decrypted = cipher.decrypt(''.join(hex(e)[2:4].decode("hex") for e in unpackedsteg))
+decrypted = cipher.decrypt(''.join('{0:02x}'.format(int(e)).decode("hex") for e in unpackedsteg))
 decryptedlist = list(bytearray(decrypted))
 unpackeddecrypted = jts.bytestojt65(decryptedlist)
 ### Decryption end
