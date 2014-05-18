@@ -1,4 +1,9 @@
 #!/usr/bin/python
+#
+# poc4.py
+#
+# PoC + ARC4
+#
 
 import numpy as np
 import jt65wrapy as jt
@@ -11,8 +16,8 @@ from Crypto.Hash import SHA
 key = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
 
 if len(sys.argv) < 3:
-	print 'poc3.py -- Proof of concept JT65 steganography encoder'
-	print 'Usage: ./poc4.py <intented jt65 message> <secret message> <covernoise> <cipherkey>\n'
+	print 'poc4.py -- Proof of concept JT65 steganography encoder w/ ARC4'
+	print 'Usage: ./poc4.py <intended jt65 message> <secret message> <covernoise> <cipherkey>\n'
 	sys.exit(1)
 	    
 legitmsg = sys.argv[1]
