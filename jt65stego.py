@@ -80,3 +80,20 @@ def bytestojt65(bytes):
 	output[10] = (bytes[7] & 0x0F) << 2 | (bytes[8] & 0xC0) >> 6
 	output[11] = bytes[8] & 0x3F
 	return output
+
+def bytes8tojt65(bytes, status):
+#Unpacks 8 full bytes plus a status byte to 12 byte JT65 message
+	output = np.array(range(12),dtype=np.int32)
+	output[0] = status >> 2
+	output[1] = (status & 0x03) << 4 | (bytes[0] & 0xF0) >> 4
+	output[2] = (bytes[0] & 0x0F) << 2 | (bytes[1] & 0xC0) >> 6
+	output[3] = bytes[1] & 0x3F
+	output[4] = bytes[2] >> 2
+	output[5] = (bytes[2] & 0x03) << 4 | (bytes[3] & 0xF0) >> 4
+	output[6] = (bytes[3] & 0x0F) << 2 | (bytes[4] & 0xC0) >> 6
+	output[7] = bytes[4] & 0x3F
+	output[8] = bytes[5] >> 2
+	output[9] = (bytes[5] & 0x03) << 4 | (bytes[6] & 0xF0) >> 4
+	output[10] = (bytes[6] & 0x0F) << 2 | (bytes[7] & 0xC0) >> 6
+	output[11] = bytes[7] & 0x3F
+	return output
