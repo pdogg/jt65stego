@@ -1,3 +1,4 @@
+import sys
 import jt65wrapy as jt
 import numpy as np
 import random
@@ -25,7 +26,7 @@ def jtunsteg(recdmsg,key) :
 		output[x] = recdmsg[key[x]]
 	return dec(output)
 
-def randomcover(message, key, howmuch=10) :
+def randomcover(message, key, howmuch=10, verbose=False) :
 #insert some random cover noise
 #message is a stegged jt65 message stegged with key 
 #howmuch is how much random "error" to add
@@ -36,9 +37,11 @@ def randomcover(message, key, howmuch=10) :
 		while (loc in key) or (loc in locs) :
 			loc = random.randint(0,62)
 		locs.extend([loc])
-		print "loc: " + str(loc)
+		if verbose:
+			print "loc: " + str(loc)
 		message[loc] = random.randint(0,63)
-		print str(noisecount) + " round of cover - changed " + str(loc) + " to " + str(message[loc])
+		if verbose:
+			print str(noisecount) + " round of cover - changed " + str(loc) + " to " + str(message[loc])
 		noisecount += 1
 	return message
 
@@ -97,3 +100,58 @@ def bytes8tojt65(bytes, status):
 	output[10] = (bytes[6] & 0x0F) << 2 | (bytes[7] & 0xC0) >> 6
 	output[11] = bytes[7] & 0x3F
 	return output
+
+def BatchEncode(jt65msg, stegmsg, noise, cipher, key, recipient, aesmode, verbose, stdout, wavout, hidekey):
+	jt65msgs = jt65msg.split(',')
+
+	#Can we fit your hidden message?
+	if len(jt65msgs) * 13 < len(stegmsg):
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
+
+	if cipher == "none":
+		for index,value in enumerate(jt65msgs):
+			legitjt = jt.encode(value)
+			secretjt = jt.encode(stegmsg[index*13:index*13+13])
+			legitpacket = jt.prepmsg(legitjt)
+
+			if verbose:
+				print "JT65 legit message 	: " + value
+				print "Encoded as		: " + str(legitjt)
+				print "\nLegit channel symbols with RS:"
+				print legitpacket
+				print "\nSecret message		: " + stegmsg[index*13:index*13+13]
+				print "Secret message encoded  : " + str(secretjt)
+
+			stegedpacket = jtsteg(legitpacket,secretjt,hidekey)
+			stegedpacket = randomcover(stegedpacket,hidekey,noise,verbose)
+
+			if verbose:
+				print "Stego with key		: " + str(hidekey)
+
+			if stdout:
+				np.set_printoptions(linewidth=300)
+				print stegedpacket
+
+def BatchDecode(cipher, key, aesmode, verbose, stdin, wavin, hidekey):
+	stegedmsg = ""
+
+	if stdin:
+		stdinput = sys.stdin.readlines()
+	
+	for index,value in enumerate(stdinput):
+		if verbose:
+			print "Message " + str(index) + " : " + value
+
+		numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
+		print "\nDecoded JT65 message " + str(index) + ": " + jt.decode(jt.unprepmsg(numpymsg))
+
+		if cipher == "none":
+			recoveredsteg = jtunsteg(numpymsg,hidekey)
+			recoveredtext = jt.decode(recoveredsteg)[0:13]
+			if verbose:
+				print "\nRecovered Stego message : " + str(recoveredsteg)
+				print "\nText : " + recoveredtext
+			stegedmsg += recoveredtext
+
+	print "\nStego message : " + stegedmsg
