@@ -30,13 +30,13 @@ def toneswithsync(message, m=1, offset=0):
 # this is HZ ready to covert to audio and put out on the wire
 #m is 1 2 or 4 for submodes a b and c
 #offset is frequency offset
-	output = np.array(range(125),dtype=np.float)
+	output = np.array(range(126),dtype=np.float)
 	synctone = 1270.5 + offset
 	messagetones = tonepacket(message, m, offset)
 	messageindex = 0
 #the mystic 'pseudo-random sequence"
 	syncvector = [1,0,0,1,1,0,0,0,1,1,1,1,1,1,0,1,0,1,0,0,0,1,0,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,1,1,0,1,1,0,1,1,1,1,0,0,0,1,1,0,1,0,1,0,1,1,0,0,1,1,0,1,0,1,0,1,0,0,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,0,1,0,0,0,0,1,1,1,1,1,1,1,1]
-	for x in range(0,125):
+	for x in range(0,126):
 		if syncvector[x] == 1:
 			output[x] = synctone
 		else:
@@ -49,24 +49,24 @@ def toneswithsync(message, m=1, offset=0):
 
 def outputwavfile(filename, tones):
  
-
   data_size = 4096 #samples per jt65 symbol
   frate = 11025.0  # framerate as a float
-  amp = 64000.0     # multiplier for amplitude
-
+#  amp = 64000.0     # multiplier for amplitude
+  amp = 1000.0
 
   wav_file = wave.open(filename, "w")
 
   nchannels = 1
   sampwidth = 2
   framerate = int(frate)
-  nframes = data_size * 126
+  nframes = 11026 + (data_size * 126)
   comptype = "NONE"
   compname = "not compressed"
 
   wav_file.setparams((nchannels, sampwidth, framerate, nframes, comptype, compname))
-  
-  for index in range(0,125):
+  for i in range(0,11026):
+    wav_file.writeframes(struct.pack('h',int(0)))
+  for index in range(0,126):
     sine_list_x = []
     for x in range(data_size):
       sine_list_x.append(math.sin(2*math.pi*tones[index]*(x/frate)))
