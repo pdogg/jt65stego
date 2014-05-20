@@ -54,5 +54,5 @@ if args.batch and args.encode:
 	jts.BatchEncode(args.jt65msg, args.stegmsg, args.noise, args.cipher, args.key, args.recipient, args.aesmode, args.verbose, args.stdout, args.wavout, hidekey)
 
 # Batch decode
-if args.decode:
+elif args.decode:
 	jts.BatchDecode(args.cipher, args.key, args.aesmode, args.verbose, args.stdin, args.wavin, hidekey)
