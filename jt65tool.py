@@ -40,9 +40,9 @@ groupEncryption.add_argument('--cipher', default='none', metavar='<type>', help=
 groupEncryption.add_argument('--key', metavar='<key>', help='Cipher key (batch mode)')
 groupEncryption.add_argument('--recipient', metavar='<user>', help='Recipient for GPG mode')
 groupEncryption.add_argument('--aesmode', metavar='<mode>', help='Supported modes are ECB, CBC, CFB (default: ECB)')
-groupEncodeOutput.add_argument('--stdout', action='store_true', help='Output to terminal (default)')
+groupEncodeOutput.add_argument('--stdout', default=True, action='store_true', help='Output to terminal (default)')
 groupEncodeOutput.add_argument('--wavout', metavar='<file1.wav>', help='Output to wav file(s) - Multiple files suffix -001.wav, -002.wav...')
-groupDecodeInput.add_argument('--stdin', action='store_true', help='Input from stdin (default)')
+groupDecodeInput.add_argument('--stdin', default=True, action='store_true', help='Input from stdin (default)')
 groupDecodeInput.add_argument('--wavin', metavar='<file1.wav(,file2.wav)(,file3.wav)...>', help='Input from wav file(s)')
 args = parser.parse_args()
 
@@ -54,5 +54,5 @@ if args.batch and args.encode:
 	jts.BatchEncode(args.jt65msg, args.stegmsg, args.noise, args.cipher, args.key, args.recipient, args.aesmode, args.verbose, args.stdout, args.wavout, hidekey)
 
 # Batch decode
-if args.batch and args.decode:
+if args.decode:
 	jts.BatchDecode(args.cipher, args.key, args.aesmode, args.verbose, args.stdin, args.wavin, hidekey)

@@ -104,12 +104,12 @@ def bytes8tojt65(bytes, status):
 def BatchEncode(jt65msg, stegmsg, noise, cipher, key, recipient, aesmode, verbose, stdout, wavout, hidekey):
 	jt65msgs = jt65msg.split(',')
 
-	#Can we fit your hidden message?
-	if len(jt65msgs) * 13 < len(stegmsg):
-		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-		sys.exit(0)
-
 	if cipher == "none":
+		#Can we fit your hidden message?
+		if len(jt65msgs) * 13 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+
 		for index,value in enumerate(jt65msgs):
 			legitjt = jt.encode(value)
 			secretjt = jt.encode(stegmsg[index*13:index*13+13])
