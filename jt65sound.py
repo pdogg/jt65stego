@@ -59,14 +59,14 @@ def outputwavfile(filename, tones):
   nchannels = 1
   sampwidth = 2
   framerate = int(frate)
-  nframes = 11026 + (data_size * 126)
+  nframes = 11026 + (data_size * 126) #add 1 second of frames + the number of symbols * size of symbols
   comptype = "NONE"
   compname = "not compressed"
 
   wav_file.setparams((nchannels, sampwidth, framerate, nframes, comptype, compname))
   for i in range(0,11026):
-    wav_file.writeframes(struct.pack('h',int(0)))
-  for index in range(0,126):
+    wav_file.writeframes(struct.pack('h',int(0)))  # enjoy 1 second of silence (jt65 specs say start tx 1 sec after start of min)
+  for index in range(0,126): 
     sine_list_x = []
     for x in range(data_size):
       sine_list_x.append(math.sin(2*math.pi*tones[index]*(x/frate)))
