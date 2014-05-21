@@ -3,6 +3,9 @@ import jt65wrapy as jt
 import numpy as np
 import random
 from Crypto.Cipher import AES
+import hashlib
+#import binascii #only needed if we're debugging
+import struct
 
 def jtsteg(prepedmsg,secretmsg,key) :
 #simple stego routine to enbed a secret message into a preped jt65 packet according to key
@@ -44,6 +47,35 @@ def randomcover(message, key, howmuch=10, verbose=False) :
 			print str(noisecount) + " round of cover - changed " + str(loc) + " to " + str(message[loc])
 		noisecount += 1
 	return message
+
+def getnoisekey(password) :
+#I AM NOT A CRYPTOGRAPHER I HAVE NO IDEA IF THIS IS SAFE
+#THIS FEATURE LEAKS BYTES OF THE sha256 HASH OF THE PASSWORD!!!
+#returns a "noisekey" given a password
+#md5 hashes the password and then uses it to determine the key (insertion locations on the stego)
+#returns FALSE if no valid key can be obtained
+   output = np.array(range(12),dtype=np.int32) #array to return
+   
+   sha256calc = hashlib.sha256()
+   sha256calc.update(password)
+   passwordhash = sha256calc.digest()
+#  print binascii.hexlify(passwordhash)
+   donthavekey = True
+   hashindex = 0
+   keyindex = 0
+   while donthavekey :
+    
+    if hashindex >= len(passwordhash) :
+      return False
+    potentialsymbol = int(struct.unpack("B",passwordhash[hashindex])[0]) % 63
+#    print potentialsymbol
+    if potentialsymbol not in output :
+      output[keyindex] = potentialsymbol
+      keyindex += 1
+    hashindex += 1  
+    if keyindex == 12 :
+      donthavekey = False
+   return output
 
 def jt65tobytes(jt65bytes):
 #Packs 12 byte JT65 message to 9 full bytes suitable for cipher
