@@ -1,6 +1,17 @@
 jt65stego
 =========
 
+Fork/Branch with the new WSJT fortran libs
+build them with 
+bash ./f2pybuild.sh
+
+There's no encoder diference I can find... :(
+
+
+
+
+
+
 jt65stego project
 
 Well the good news is the code still fucking works :)

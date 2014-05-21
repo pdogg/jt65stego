@@ -6,13 +6,13 @@ import numpy, JT65
 def encode(message) :
 #return a numpy array which is the 13 element JT65 message symbols
 	output = numpy.array(range(12),dtype=numpy.int32) #array to return
-	JT65.packmsg(message,output)
+	JT65.jt65packmsg(message,output)
 	return output
 
 def decode(recarray) :
 #returns a string decoded from the 12 element recarray received
 	output = numpy.array(range(22),'c')
-	JT65.unpackmsg(recarray,output)
+	JT65.jt65unpackmsg(recarray,output)
 	retstr = ''.join(output)
 	return retstr
 
