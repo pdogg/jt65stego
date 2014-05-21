@@ -7,8 +7,8 @@
 import sys
 import argparse
 import numpy as np
-import jt65wrapy as jt
 import jt65stego as jts
+import jt65sound
 
 hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
 
@@ -20,6 +20,50 @@ def ValidateArguments(args):
 	if args.interactive and args.batch:
 		print("Cannot use both --interactive and --batch at the same time!")
 		sys.exit(0)
+
+def SetArgumentDefaults(args):
+	if not args.stdout and not args.wavout:
+		args.stdout = True
+
+	if not args.stdin and not args.wavin:
+		args.stdin = True
+
+def processoutput(finalmsgs, stdout, wavout, verbose):
+#Send JT65 messages to output specified by user
+	if stdout:
+		np.set_printoptions(linewidth=300)
+
+		for msg in finalmsgs:
+			print msg
+
+	if wavout:
+		if wavout.endswith('.wav'):
+			wavout = wavout[:-4]
+
+		for index,value in enumerate(finalmsgs):
+			filename = wavout + "-" + str(index).zfill(3) + ".wav"
+
+			if verbose:
+				print "Generating audio file " + str(index) + " : " + filename
+				
+			tones = jt65sound.toneswithsync(value)
+			jt65sound.outputwavfile(filename, tones)
+
+def processinput(stdin, wavin, verbose):
+#Process input from stdin or wavs and return array of JT65 data
+	JT65data = []
+
+	if stdin:
+		stdinput = sys.stdin.readlines()
+
+		for index,value in enumerate(stdinput):
+			if verbose:
+				print "Raw Message " + str(index) + " : " + value
+
+			numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
+			JT65data.append(numpymsg)
+
+	return JT65data
 
 # Command line argument setup
 parser = argparse.ArgumentParser(description='Steganography tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
@@ -40,14 +84,15 @@ groupEncryption.add_argument('--cipher', default='none', metavar='<type>', help=
 groupEncryption.add_argument('--key', metavar='<key>', help='Cipher key (batch mode)')
 groupEncryption.add_argument('--recipient', metavar='<user>', help='Recipient for GPG mode')
 groupEncryption.add_argument('--aesmode', metavar='<mode>', help='Supported modes are ECB, CBC, CFB (default: ECB)')
-groupEncodeOutput.add_argument('--stdout', default=True, action='store_true', help='Output to terminal (default)')
+groupEncodeOutput.add_argument('--stdout', action='store_true', help='Output to terminal (default)')
 groupEncodeOutput.add_argument('--wavout', metavar='<file1.wav>', help='Output to wav file(s) - Multiple files suffix -001.wav, -002.wav...')
-groupDecodeInput.add_argument('--stdin', default=True, action='store_true', help='Input from stdin (default)')
+groupDecodeInput.add_argument('--stdin', action='store_true', help='Input from stdin (default)')
 groupDecodeInput.add_argument('--wavin', metavar='<file1.wav(,file2.wav)(,file3.wav)...>', help='Input from wav file(s)')
 args = parser.parse_args()
 
 # Check arguments to make sure we have everything we need and there are no contradictory commands
 ValidateArguments(args)
+SetArgumentDefaults(args)
 
 # Batch encode
 if args.batch and args.encode:
@@ -64,12 +109,12 @@ if args.batch and args.encode:
 	finalmsgs = jts.steginject(jt65data, args.noise, cipherdata, hidekey, args.verbose)
 
 	#Send to output
-	jts.processoutput(finalmsgs, args.stdout, args.wavout, args.verbose)
+	processoutput(finalmsgs, args.stdout, args.wavout, args.verbose)
 
 # Decode
 elif args.decode:
 	#Process input to JT numpy arrays
-	jt65data = jts.processinput(args.stdin, args.wavin, args.verbose)
+	jt65data = processinput(args.stdin, args.wavin, args.verbose)
 
 	#Retrieve JT65 valid messages
 	jt65msgs = jts.decodemessages(jt65data, args.verbose)

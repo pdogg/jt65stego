@@ -93,30 +93,6 @@ def bytes8tojt65(bytes, status):
 	output[11] = bytes[7] & 0x3F
 	return output
 
-def processinput(stdin, wavin, verbose):
-#Process input from stdin or wavs and return array of JT65 data
-	JT65data = []
-
-	if stdin:
-		stdinput = sys.stdin.readlines()
-
-		for index,value in enumerate(stdinput):
-			if verbose:
-				print "Raw Message " + str(index) + " : " + value
-
-			numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
-			JT65data.append(numpymsg)
-
-	return JT65data
-
-def processoutput(finalmsgs, stdout, wavout, verbose):
-#Send JT65 messages to output specified by user
-	if stdout:
-		np.set_printoptions(linewidth=300)
-
-		for msg in finalmsgs:
-			print msg
-
 def jt65encodemessages(jt65msgs, verbose):
 #Encode valid text into array of JT65 data
 	jt65data = []
