@@ -51,7 +51,20 @@ ValidateArguments(args)
 
 # Batch encode
 if args.batch and args.encode:
-	jts.BatchEncode(args.jt65msg, args.stegmsg, args.noise, args.cipher, args.key, args.recipient, args.aesmode, args.verbose, args.stdout, args.wavout, hidekey)
+	#Create array of your valid JT65 text
+	jt65msgs = args.jt65msg.split(',')
+
+	#Create array of valid JT65 data
+	jt65data = jts.jt65encodemessages(jt65msgs, args.verbose)
+
+	#Create array of cipher data to hide
+	cipherdata = jts.createciphermsgs(len(jt65data), args.stegmsg, args.cipher, args.key, args.recipient, args.aesmode, args.verbose)
+
+	#Embed steg data in JT65 messages
+	finalmsgs = jts.steginject(jt65data, args.noise, cipherdata, hidekey, args.verbose)
+
+	#Send to output
+	jts.processoutput(finalmsgs, args.stdout, args.wavout, args.verbose)
 
 # Decode
 elif args.decode:

@@ -109,6 +109,31 @@ def processinput(stdin, wavin, verbose):
 
 	return JT65data
 
+def processoutput(finalmsgs, stdout, wavout, verbose):
+#Send JT65 messages to output specified by user
+	if stdout:
+		np.set_printoptions(linewidth=300)
+
+		for msg in finalmsgs:
+			print msg
+
+def jt65encodemessages(jt65msgs, verbose):
+#Encode valid text into array of JT65 data
+	jt65data = []
+
+	for index,value in enumerate(jt65msgs):
+		legitjt = jt.encode(value)
+		legitpacket = jt.prepmsg(legitjt)
+
+		if verbose:
+			print "JT65 legit message " + str(index) + " : " + value
+			print "Encoded as : " + str(legitjt)
+			print "Legit channel symbols with RS :" + str(legitpacket)
+
+		jt65data.append(legitpacket)
+
+	return jt65data
+
 def decodemessages(jt65data, verbose):
 #Decode valid JT65 messages from array of JT65 data
 	jt65msgs = []
@@ -120,6 +145,72 @@ def decodemessages(jt65data, verbose):
 		jt65msgs.append(jt65msg)
 
 	return jt65msgs
+
+def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, verbose):
+	ciphermsgs = []
+
+	if cipher == "none":
+		#Can we fit your hidden message?
+		if jt65msgcount * 13 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+
+		for index in range(jt65msgcount):
+			secretjt = jt.encode(stegmsg[index*13:index*13+13])
+
+			if verbose:
+				print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
+				print "Secret message " + str(index) + " encoded : " + str(secretjt)
+
+			ciphermsgs.append(secretjt)
+
+	if cipher == "AES":
+		#Check key size
+		if len(key) != 16 and len(key) != 24 and len(key) != 32:
+			print ("\nCipher key must be 16, 24, or 32 bytes... sorry :(\n")
+			sys.exit(0)
+
+		#Can we fit your hidden message?
+		if jt65msgcount * 8 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+
+		#Prep the encrypted hidden data
+		if aesmode == "ECB":
+			cryptobj = AES.new(key, AES.MODE_ECB)
+		#elif aesmode == "CBC":
+		#	cryptobj = AES.new(key, AES.MODE_CBC)
+		#elif aesmode == "CFB":
+		#	cryptobj = AES.new(key, AES.MODE_CFB)
+		while len(stegmsg) % 16:
+			stegmsg += " "
+
+		cipherdata = cryptobj.encrypt(stegmsg)
+		cipherlist = list(bytearray(cipherdata))
+
+		if verbose: 			
+			print "Cipher list: " + str(cipherlist)
+
+		for index in range(jt65msgcount):
+			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+
+			if verbose:
+				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+
+			ciphermsgs.append(thissteg)
+
+	return ciphermsgs
+
+def steginject(jt65data, noise, cipherdata, hidekey, verbose):
+#Combine array of JT65 valid messages with array of JT65 encoded steg data
+	finalpackets = []
+
+	for index in range(len(jt65data)):
+		stegedpacket = jtsteg(jt65data[index],cipherdata[index],hidekey)
+		stegedpacket = randomcover(stegedpacket,hidekey,noise,verbose)
+		finalpackets.append(stegedpacket)
+
+	return finalpackets
 
 def retrievesteg(jt65data, hidekey, verbose):
 #Retrieve steganography data from array of JT65 data
@@ -170,79 +261,3 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose):
 		stegedmsg = cryptobj.decrypt(finalcipherdata)
 
 	return stegedmsg
-
-def BatchEncode(jt65msg, stegmsg, noise, cipher, key, recipient, aesmode, verbose, stdout, wavout, hidekey):
-	jt65msgs = jt65msg.split(',')
-
-	if cipher == "none":
-		#Can we fit your hidden message?
-		if len(jt65msgs) * 13 < len(stegmsg):
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
-
-		for index,value in enumerate(jt65msgs):
-			legitjt = jt.encode(value)
-			secretjt = jt.encode(stegmsg[index*13:index*13+13])
-			legitpacket = jt.prepmsg(legitjt)
-
-			if verbose:
-				print "JT65 legit message 	: " + value
-				print "Encoded as		: " + str(legitjt)
-				print "\nLegit channel symbols with RS:"
-				print legitpacket
-				print "\nSecret message		: " + stegmsg[index*13:index*13+13]
-				print "Secret message encoded  : " + str(secretjt)
-
-			stegedpacket = jtsteg(legitpacket,secretjt,hidekey)
-			stegedpacket = randomcover(stegedpacket,hidekey,noise,verbose)
-
-			if verbose:
-				print "Stego with key		: " + str(hidekey)
-
-			if stdout:
-				np.set_printoptions(linewidth=300)
-				print stegedpacket
-
-	if cipher == "AES":
-		#Check key size
-		if len(key) != 16 and len(key) != 24 and len(key) != 32:
-			print ("\nCipher key must be 16, 24, or 32 bytes... sorry :(\n")
-			sys.exit(0)
-
-		#Can we fit your hidden message?
-		if len(jt65msgs) * 8 < len(stegmsg):
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
-
-		#Prep the encrypted hidden data
-		if aesmode == "ECB":
-			cryptobj = AES.new(key, AES.MODE_ECB)
-		#elif aesmode == "CBC":
-		#	cryptobj = AES.new(key, AES.MODE_CBC)
-		#elif aesmode == "CFB":
-		#	cryptobj = AES.new(key, AES.MODE_CFB)
-		while len(stegmsg) % 16:
-			stegmsg += " "
-
-		cipherdata = cryptobj.encrypt(stegmsg)
-		cipherlist = list(bytearray(cipherdata))
-
-		if verbose: 			
-			print "\nCipher list: " + str(cipherlist)
-
-		for index,value in enumerate(jt65msgs):
-			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
-
-			if verbose:
-
-				print "\nJT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-				print "\nStego with key		: " + str(hidekey)
-
-			legitjt = jt.encode(value)
-			legitpacket = jt.prepmsg(legitjt)
-			stegedpacket = jtsteg(legitpacket,thissteg,hidekey)
-			stegedpacket = randomcover(stegedpacket,hidekey,noise)
-
-			if stdout:
-				np.set_printoptions(linewidth=300)
-				print stegedpacket
