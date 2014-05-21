@@ -10,10 +10,9 @@ def jtsteg(prepedmsg,secretmsg,key) :
 # secretmsg - encoded jt65 mesage
 # key - list defining stego positions to insert as error
 # returns a jt65 packet as a numpy array
-	encsecretmsg = enc(secretmsg)
 	outputmsg = np.copy(prepedmsg)
 	for x in range(0,12):
-		outputmsg[key[x]]=encsecretmsg[x]
+		outputmsg[key[x]]=secretmsg[x]
 	
 	return outputmsg
 
@@ -25,7 +24,7 @@ def jtunsteg(recdmsg,key) :
 	output = np.array(range(12),dtype=np.int32) #array to return
 	for x in range(0,12):
 		output[x] = recdmsg[key[x]]
-	return dec(output)
+	return output
 
 def randomcover(message, key, howmuch=10, verbose=False) :
 #insert some random cover noise
@@ -45,14 +44,6 @@ def randomcover(message, key, howmuch=10, verbose=False) :
 			print str(noisecount) + " round of cover - changed " + str(loc) + " to " + str(message[loc])
 		noisecount += 1
 	return message
-
-def enc(msg) :
-#returns an "encoded" jt65 message based on a supplied message
-	return msg
-
-def dec(msg) :
-#returns a "decoded" jt65 message based on the supplied message
-	return msg
 
 def jt65tobytes(jt65bytes):
 #Packs 12 byte JT65 message to 9 full bytes suitable for cipher
@@ -101,6 +92,84 @@ def bytes8tojt65(bytes, status):
 	output[10] = (bytes[6] & 0x0F) << 2 | (bytes[7] & 0xC0) >> 6
 	output[11] = bytes[7] & 0x3F
 	return output
+
+def processinput(stdin, wavin, verbose):
+#Process input from stdin or wavs and return array of JT65 data
+	JT65data = []
+
+	if stdin:
+		stdinput = sys.stdin.readlines()
+
+		for index,value in enumerate(stdinput):
+			if verbose:
+				print "Raw Message " + str(index) + " : " + value
+
+			numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
+			JT65data.append(numpymsg)
+
+	return JT65data
+
+def decodemessages(jt65data, verbose):
+#Decode valid JT65 messages from array of JT65 data
+	jt65msgs = []
+
+	for index,value in enumerate(jt65data):
+		jt65msg = jt.decode(jt.unprepmsg(value))
+		if verbose:
+			print "JT65 Message " + str(index) + " : " + jt65msg
+		jt65msgs.append(jt65msg)
+
+	return jt65msgs
+
+def retrievesteg(jt65data, hidekey, verbose):
+#Retrieve steganography data from array of JT65 data
+	stegdata = []
+
+	for index,value in enumerate(jt65data):
+		data = jtunsteg(value,hidekey)
+		if verbose:
+			print "Steg Bytes in Message " + str(index) + " : " + str(data)
+		stegdata.append(data)
+
+	return stegdata
+
+def deciphersteg(stegdata, cipher, key, aesmode, verbose):
+#Decipher hidden message from array of data hidden in JT65 errors
+	stegedmsg = ""
+	stegedmsgba = np.array(range(0),dtype=np.int32)
+
+	for index,value in enumerate(stegdata):
+		if cipher == "none":
+			recoveredtext = jt.decode(value)[0:13]
+			if verbose:
+				print "Steg Text in Message " + str(index) + " : " + recoveredtext
+			stegedmsg += recoveredtext
+
+		else:
+			thisunstegbytes = jt65tobytes(value)[1:10]
+			if verbose:
+				print "Steg Data in Message " + str(index) + " : " + str(thisunstegbytes)
+			stegedmsgba = np.append(stegedmsgba, thisunstegbytes)
+
+	if cipher == "AES":
+		if verbose:
+			print"Cipher Data : " + str(stegedmsgba)
+
+		finalcipherdata = (''.join('{0:02x}'.format(int(e)).decode("hex") for e in stegedmsgba))
+		
+		if verbose:
+			print"Cipher Data Hex : " + finalcipherdata
+
+		if aesmode == "ECB":
+			cryptobj = AES.new(key, AES.MODE_ECB)
+		#elif aesmode == "CBC":
+		#	cryptobj = AES.new(key, AES.MODE_CBC)
+		#elif aesmode == "CFB":
+		#	cryptobj = AES.new(key, AES.MODE_CFB)
+
+		stegedmsg = cryptobj.decrypt(finalcipherdata)
+
+	return stegedmsg
 
 def BatchEncode(jt65msg, stegmsg, noise, cipher, key, recipient, aesmode, verbose, stdout, wavout, hidekey):
 	jt65msgs = jt65msg.split(',')
@@ -177,55 +246,3 @@ def BatchEncode(jt65msg, stegmsg, noise, cipher, key, recipient, aesmode, verbos
 			if stdout:
 				np.set_printoptions(linewidth=300)
 				print stegedpacket
-
-def BatchDecode(cipher, key, aesmode, verbose, stdin, wavin, hidekey):
-	stegedmsg = ""
-	stegedmsgba = np.array(range(0),dtype=np.int32)
-
-	if stdin:
-		stdinput = sys.stdin.readlines()
-	
-	for index,value in enumerate(stdinput):
-		if verbose:
-			print "Message " + str(index) + " : " + value
-
-		numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
-		print "\nDecoded JT65 message " + str(index) + ": " + jt.decode(jt.unprepmsg(numpymsg))
-
-		if cipher == "none":
-			recoveredsteg = jtunsteg(numpymsg,hidekey)
-			recoveredtext = jt.decode(recoveredsteg)[0:13]
-			if verbose:
-				print "\nRecovered Stego message : " + str(recoveredsteg)
-				print "\nText : " + recoveredtext
-			stegedmsg += recoveredtext
-
-		else:
-			thisunsteg = jtunsteg(numpymsg,hidekey)
-			thisunstegbytes = jt65tobytes(thisunsteg)[1:10]
-
-			if verbose:
-				print "\nRecovered Stego message " + str(index) + " : " + str(thisunsteg)
-				print "\nStego message " + str(index) + " bytes : " + str(thisunstegbytes)
-
-			stegedmsgba = np.append(stegedmsgba, thisunstegbytes)
-
-	if cipher == "AES":
-		if verbose:
-			print"\nCipher Data A : " + str(stegedmsgba)
-
-		finalcipherdata = (''.join('{0:02x}'.format(int(e)).decode("hex") for e in stegedmsgba))
-		
-		if verbose:
-			print"\nCipher Data B : " + finalcipherdata
-
-		if aesmode == "ECB":
-			cryptobj = AES.new(key, AES.MODE_ECB)
-		#elif aesmode == "CBC":
-		#	cryptobj = AES.new(key, AES.MODE_CBC)
-		#elif aesmode == "CFB":
-		#	cryptobj = AES.new(key, AES.MODE_CFB)
-
-		stegedmsg = cryptobj.decrypt(finalcipherdata)
-
-	print "\nStego message : " + stegedmsg

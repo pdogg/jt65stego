@@ -53,6 +53,21 @@ ValidateArguments(args)
 if args.batch and args.encode:
 	jts.BatchEncode(args.jt65msg, args.stegmsg, args.noise, args.cipher, args.key, args.recipient, args.aesmode, args.verbose, args.stdout, args.wavout, hidekey)
 
-# Batch decode
+# Decode
 elif args.decode:
-	jts.BatchDecode(args.cipher, args.key, args.aesmode, args.verbose, args.stdin, args.wavin, hidekey)
+	#Process input to JT numpy arrays
+	jt65data = jts.processinput(args.stdin, args.wavin, args.verbose)
+
+	#Retrieve JT65 valid messages
+	jt65msgs = jts.decodemessages(jt65data, args.verbose)
+
+	#Retrieve steg message
+	stegdata = jts.retrievesteg(jt65data, hidekey, args.verbose)
+
+	#Decipher steg message
+	stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
+
+	#Print result
+	for index,value in enumerate(jt65msgs):
+		print "\nDecoded JT65 message " + str(index) + " : " + value 
+	print "\nHidden message : " + stegmsg
