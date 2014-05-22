@@ -51,8 +51,8 @@ def outputwavfile(filename, tones):
  
   data_size = 4096 #samples per jt65 symbol
   frate = 11025.0  # framerate as a float
-#  amp = 64000.0     # multiplier for amplitude
-  amp = 1000.0
+  amp = 38000.0     # multiplier for amplitude
+#  amp = 1000.0
 
   wav_file = wave.open(filename, "w")
 
@@ -74,5 +74,7 @@ def outputwavfile(filename, tones):
     # write the audio frames to file
       wav_file.writeframes(struct.pack('h', int(s*amp/2)))
 
+  for i in range(0,134380):
+    wav_file.writeframes(struct.pack('h',int(0)))  # finish out the minute with silence for the decoders to be happy with the .wav file
   wav_file.close()
   return filename
