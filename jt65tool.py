@@ -102,11 +102,18 @@ if args.batch and args.encode:
 	#Create array of valid JT65 data
 	jt65data = jts.jt65encodemessages(jt65msgs, args.verbose)
 
-	#Create array of cipher data to hide
-	cipherdata = jts.createciphermsgs(len(jt65data), args.stegmsg, args.cipher, args.key, args.recipient, args.aesmode, args.verbose)
+	if args.stegmsg != "":
+		#Create array of cipher data to hide
+		cipherdata = jts.createciphermsgs(len(jt65data), args.stegmsg, args.cipher, args.key, args.recipient, args.aesmode, args.verbose)
 
-	#Embed steg data in JT65 messages
-	finalmsgs = jts.steginject(jt65data, args.noise, cipherdata, hidekey, args.verbose)
+		#Embed steg data in JT65 messages
+		finalmsgs = jts.steginject(jt65data, args.noise, cipherdata, hidekey, args.verbose)
+
+	else:
+		#No steg data to hide, just add cover noise if specified
+		finalmsgs = []
+		for msg in jt65data:
+			finalmsgs.append(jts.randomcover(msg,[],args.noise,args.verbose))
 
 	#Send to output
 	processoutput(finalmsgs, args.stdout, args.wavout, args.verbose)
