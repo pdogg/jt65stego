@@ -36,8 +36,7 @@ class TestStegFunctions(unittest.TestCase):
 			for index,value in enumerate(covered):
 				if covered[index] != randomvalidmessage[index]:
 					miscount += 1
-			# It's possible for this not to be equal if the random digit matched the digit replaced
-			self.assertTrue(i >= miscount)
+			self.assertTrue(i == miscount)
 
 	def test_PackUnpack(self):
 		for i in range(RANDOM_TEST_LOOP_COUNT):

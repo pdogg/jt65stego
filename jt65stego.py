@@ -39,7 +39,10 @@ def randomcover(message, key, howmuch=10, verbose=False) :
 		locs.extend([loc])
 		if verbose:
 			print "loc: " + str(loc)
-		message[loc] = random.randint(0,63)
+		coverint = random.randint(0,63)
+		while coverint == message[loc]:
+			coverint = random.randint(0,63)
+		message[loc] = coverint
 		if verbose:
 			print str(noisecount) + " round of cover - changed " + str(loc) + " to " + str(message[loc])
 		noisecount += 1
