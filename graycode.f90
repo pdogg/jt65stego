@@ -1,3 +1,6 @@
+!Modified from original WSJT source Copyright Joe Taylor K1JT Release under GPL
+!By Paul Drapeau - May 20, 2014
+
 subroutine graycode(dat,n,idir)
 !f2py intent(inout) dat
 

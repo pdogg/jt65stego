@@ -1,3 +1,7 @@
+!Modified from original WSJT source Copyright Joe Taylor K1JT Release under GPL
+!By Paul Drapeau - May 20, 2014
+
+
 subroutine unpackmsg(dat,msg)
 
   parameter (NBASE=37*36*10*27*27*27)

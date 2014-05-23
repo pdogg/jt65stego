@@ -1,3 +1,6 @@
+!Modified from original WSJT source Copyright Joe Taylor K1JT Release under GPL
+!By Paul Drapeau - May 20, 2014
+
       parameter (NZ=339)                     !Total number of prefixes
       parameter (NZ2=12)                     !Total number of suffixes
       character*1 sfx(NZ2)
