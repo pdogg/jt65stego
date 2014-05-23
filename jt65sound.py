@@ -63,18 +63,32 @@ def outputwavfile(filename, tones):
   comptype = "NONE"
   compname = "not compressed"
 
+  values = []
+
   wav_file.setparams((nchannels, sampwidth, framerate, nframes, comptype, compname))
-  for i in range(0,11026):
-    wav_file.writeframes(struct.pack('h',int(0)))  # enjoy 1 second of silence (jt65 specs say start tx 1 sec after start of min)
+  
+  packed_zeros = struct.pack('h',int(0))  
+
+  # Enjoy 1 second of silence (jt65 specs say start tx 1 sec after start of min)
+  for i in range(0,11026):        
+    values.append(packed_zeros)
+  
+  # Generate the 126 tones for the wav file
   for index in range(0,126): 
     sine_list_x = []
     for x in range(data_size):
       sine_list_x.append(math.sin(2*math.pi*tones[index]*(x/frate)))
     for s in sine_list_x:
-    # write the audio frames to file
-      wav_file.writeframes(struct.pack('h', int(s*amp/2)))
+      packed_value = struct.pack('h', int(s*amp/2))
+      values.append(packed_value)
 
+  # Finish out the minute with silence for the decoders to be happy with the .wav file
   for i in range(0,134380):
-    wav_file.writeframes(struct.pack('h',int(0)))  # finish out the minute with silence for the decoders to be happy with the .wav file
+    values.append(packed_zeros)
+
+  # Write to file
+  value_str = ''.join(values)
+  wav_file.writeframes(value_str)
   wav_file.close()
+  
   return filename
