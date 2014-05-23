@@ -53,15 +53,15 @@ def randomcover(message, key, howmuch=10, verbose=False) :
 
 def getnoisekey(password) :
 #I AM NOT A CRYPTOGRAPHER I HAVE NO IDEA IF THIS IS SAFE
-#THIS FEATURE LEAKS BYTES OF THE sha256 HASH OF THE PASSWORD!!!
+#THIS FEATURE LEAKS BITS OF THE sha512 HASH OF THE PASSWORD!!!
 #returns a "noisekey" given a password
 #md5 hashes the password and then uses it to determine the key (insertion locations on the stego)
 #returns FALSE if no valid key can be obtained
    output = np.array(range(12),dtype=np.int32) #array to return
    
-   sha256calc = hashlib.sha256()
-   sha256calc.update(password)
-   passwordhash = sha256calc.digest()
+   sha512calc = hashlib.sha512()
+   sha512calc.update(password)
+   passwordhash = sha512calc.digest()
 #  print binascii.hexlify(passwordhash)
    donthavekey = True
    hashindex = 0
