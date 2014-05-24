@@ -128,7 +128,7 @@ def bytes8tojt65(bytes, status):
 	output[11] = bytes[7] & 0x3F
 	return output
 
-def jt65encodemessages(jt65msgs, verbose):
+def jt65encodemessages(jt65msgs, verbose=False):
 #Encode valid text into array of JT65 data
 	jt65data = []
 
@@ -145,7 +145,7 @@ def jt65encodemessages(jt65msgs, verbose):
 
 	return jt65data
 
-def decodemessages(jt65data, verbose):
+def decodemessages(jt65data, verbose=False):
 #Decode valid JT65 messages from array of JT65 data
 	jt65msgs = []
 
@@ -157,7 +157,7 @@ def decodemessages(jt65data, verbose):
 
 	return jt65msgs
 
-def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, verbose):
+def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, verbose=False):
 	ciphermsgs = []
 
 	if cipher == "none":
@@ -212,7 +212,7 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 	return ciphermsgs
 
-def steginject(jt65data, noise, cipherdata, hidekey, verbose):
+def steginject(jt65data, noise, cipherdata, hidekey, verbose=False):
 #Combine array of JT65 valid messages with array of JT65 encoded steg data
 	finalpackets = []
 
@@ -223,7 +223,7 @@ def steginject(jt65data, noise, cipherdata, hidekey, verbose):
 
 	return finalpackets
 
-def retrievesteg(jt65data, hidekey, verbose):
+def retrievesteg(jt65data, hidekey, verbose=False):
 #Retrieve steganography data from array of JT65 data
 	stegdata = []
 
@@ -235,7 +235,7 @@ def retrievesteg(jt65data, hidekey, verbose):
 
 	return stegdata
 
-def deciphersteg(stegdata, cipher, key, aesmode, verbose):
+def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 #Decipher hidden message from array of data hidden in JT65 errors
 	stegedmsg = ""
 	stegedmsgba = np.array(range(0),dtype=np.int32)
