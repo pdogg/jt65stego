@@ -142,3 +142,46 @@ class TestBlackBox(unittest.TestCase):
 		for i in range(len(jt65msgs)):
 			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 		self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_AES_CFB(self):
+		#Encode
+		jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44","G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+		jt65data = jts.jt65encodemessages(jt65msgs, False)
+		stegmsg = "DEF CON 22"
+		cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CFB", False)
+		finalmsgs = jts.steginject(jt65data, 0, cipherdata, hidekey, True)
+
+		#Decode
+		finalresultmsgs = list(finalmsgs)
+		stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+		resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "CFB", False)
+		decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+		self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+		for i in range(len(jt65msgs)):
+			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+		self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_AES_OTP(self):
+		#Encode
+		jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+		jt65data = jts.jt65encodemessages(jt65msgs, False)
+		stegmsg = "BEACON FTW AND DEF CON 22"
+		cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "OTP", "I LOVE SECURITY AND STUFF", "", "", False)
+		finalmsgs = jts.steginject(jt65data, 0, cipherdata, hidekey, True)
+
+		expectedresult = [np.array([50,45,14,2,57,14,1,4,13,28,58,11,27,2,2,62,44,13,20,12,52,59,12,39,34,33,12,62,59,61,24,50,
+									20,34,48,37,25,31,49,10,39,11,26,48,7,23,2,26,41,28,7,10,41,49,28,7,6,23,14,49,62,53,63]),
+							np.array([45,10,52,7,1,23,48,60,13,1,51,14,1,58,37,3,54,23,51,15,60,60,29,32,56,33,7,28,1,20,10,30,
+									43,8,48,38,22,37,55,47,49,59,32,48,47,48, 6,41,30,47,0,4,41,49,54,53,51,24,45,42,8,53,63])]
+		self.assertEqual(len(expectedresult), len(finalmsgs))
+		for i in range(len(expectedresult)):
+			self.assertEqual(finalmsgs[i].tolist(), expectedresult[i].tolist())
+		#Decode
+		finalresultmsgs = list(finalmsgs)
+		stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+		resultstegmsg = jts.deciphersteg(stegdata, "OTP", "I LOVE SECURITY AND STUFF", "", False)
+		decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+		self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+		for i in range(len(jt65msgs)):
+			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+		self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())

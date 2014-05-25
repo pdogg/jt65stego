@@ -100,6 +100,96 @@ class TestStegFunctions(unittest.TestCase):
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].rstrip(), expectedresult[i])
 
+	def test_otp_ascii_int_to_otp_int(self):
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(32), 0)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(48), 1)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(49), 2)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(50), 3)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(51), 4)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(52), 5)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(53), 6)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(54), 7)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(55), 8)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(56), 9)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(57),10)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(65),11)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(66),12)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(67),13)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(68),14)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(69),15)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(70),16)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(71),17)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(72),18)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(73),19)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(74),20)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(75),21)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(76),22)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(77),23)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(78),24)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(79),25)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(80),26)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(81),27)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(82),28)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(83),29)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(84),30)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(85),31)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(86),32)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(87),33)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(88),34)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(89),35)
+		self.assertEqual(jts.otp_ascii_int_to_otp_int(90),36)
+
+	def test_otp_otp_int_to_ascii_int(self):
+		self.assertEqual(32,jts.otp_otp_int_to_ascii_int( 0))
+		self.assertEqual(48,jts.otp_otp_int_to_ascii_int( 1))
+		self.assertEqual(49,jts.otp_otp_int_to_ascii_int( 2))
+		self.assertEqual(50,jts.otp_otp_int_to_ascii_int( 3))
+		self.assertEqual(51,jts.otp_otp_int_to_ascii_int( 4))
+		self.assertEqual(52,jts.otp_otp_int_to_ascii_int( 5))
+		self.assertEqual(53,jts.otp_otp_int_to_ascii_int( 6))
+		self.assertEqual(54,jts.otp_otp_int_to_ascii_int( 7))
+		self.assertEqual(55,jts.otp_otp_int_to_ascii_int( 8))
+		self.assertEqual(56,jts.otp_otp_int_to_ascii_int( 9))
+		self.assertEqual(57,jts.otp_otp_int_to_ascii_int(10))
+		self.assertEqual(65,jts.otp_otp_int_to_ascii_int(11))
+		self.assertEqual(66,jts.otp_otp_int_to_ascii_int(12))
+		self.assertEqual(67,jts.otp_otp_int_to_ascii_int(13))
+		self.assertEqual(68,jts.otp_otp_int_to_ascii_int(14))
+		self.assertEqual(69,jts.otp_otp_int_to_ascii_int(15))
+		self.assertEqual(70,jts.otp_otp_int_to_ascii_int(16))
+		self.assertEqual(71,jts.otp_otp_int_to_ascii_int(17))
+		self.assertEqual(72,jts.otp_otp_int_to_ascii_int(18))
+		self.assertEqual(73,jts.otp_otp_int_to_ascii_int(19))
+		self.assertEqual(74,jts.otp_otp_int_to_ascii_int(20))
+		self.assertEqual(75,jts.otp_otp_int_to_ascii_int(21))
+		self.assertEqual(76,jts.otp_otp_int_to_ascii_int(22))
+		self.assertEqual(77,jts.otp_otp_int_to_ascii_int(23))
+		self.assertEqual(78,jts.otp_otp_int_to_ascii_int(24))
+		self.assertEqual(79,jts.otp_otp_int_to_ascii_int(25))
+		self.assertEqual(80,jts.otp_otp_int_to_ascii_int(26))
+		self.assertEqual(81,jts.otp_otp_int_to_ascii_int(27))
+		self.assertEqual(82,jts.otp_otp_int_to_ascii_int(28))
+		self.assertEqual(83,jts.otp_otp_int_to_ascii_int(29))
+		self.assertEqual(84,jts.otp_otp_int_to_ascii_int(30))
+		self.assertEqual(85,jts.otp_otp_int_to_ascii_int(31))
+		self.assertEqual(86,jts.otp_otp_int_to_ascii_int(32))
+		self.assertEqual(87,jts.otp_otp_int_to_ascii_int(33))
+		self.assertEqual(88,jts.otp_otp_int_to_ascii_int(34))
+		self.assertEqual(89,jts.otp_otp_int_to_ascii_int(35))
+		self.assertEqual(90,jts.otp_otp_int_to_ascii_int(36))
+
+	def test_otp_encode(self):
+		stegdata = "BEACON FTW AND DEF CON 22"
+		key = "I LOVE SECURITY AND STUFF"
+		expectedresult = "UEW0J1 778U156YDP2DCGGUII"
+		self.assertEqual(jts.otp_encode(stegdata, key), expectedresult)
+
+	def test_otp_decode(self):
+		stegdata = "UEW0J1 778U156YDP2DCGGUII"
+		key = "I LOVE SECURITY AND STUFF"
+		expectedresult = "BEACON FTW AND DEF CON 22"
+		self.assertEqual(jts.otp_decode(stegdata, key), expectedresult)
+
 	def test_CreateCipher_None(self):
 		result = jts.createciphermsgs(2, "BEACON FTW AND DEF CON 22", "none", "", "", "", False)
 		expectedresult = [np.array([16,52,50,11,6,13,41,26,39,15,39,11]), np.array([20,36,39,11,59,23,28,16,53,8,57,0])]

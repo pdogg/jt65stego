@@ -160,6 +160,63 @@ def decodemessages(jt65data, verbose=False):
 
 	return jt65msgs
 
+def otp_ascii_int_to_otp_int(charint):
+	if charint == 32:
+		return 0
+
+	if charint >= 48 and charint <= 57:
+		return charint - 47
+
+	if charint >= 65 and charint <= 90:
+		return charint - 54
+
+	print("OTP only supports CAPTIAL letters and numbers for steg data and key")
+	sys.exit(0)
+
+def otp_otp_int_to_ascii_int(charint):
+	if charint == 0:
+		return 32
+
+	if charint >= 1 and charint <= 10:
+		return charint + 47
+
+	if charint >= 11 and charint <= 36:
+		return charint + 54
+
+	print("OTP only supports CAPTIAL letters and numbers for steg data and key")
+	sys.exit(0)
+
+def otp_encode(stegmsg, key):
+	encodedmsg = ""
+
+	if len(key) < len(stegmsg):
+		print("Length of OTP key must be equal to or greater than hidden data length")
+		sys.exit(0)
+
+	for index in range(len(stegmsg)):
+		currentmsgint = otp_ascii_int_to_otp_int(ord(stegmsg[index]))
+		currentkeyint = otp_ascii_int_to_otp_int(ord(key[index]))
+		writeint = (currentmsgint + currentkeyint) % 37
+		encodedmsg += chr(otp_otp_int_to_ascii_int(writeint))
+
+	return encodedmsg
+
+def otp_decode(stegmsg, key):
+	decodedmsg = ""
+
+	while len(key) < len(stegmsg):
+		#We have no way of knowing the true length of the stegmsg during decode since it gets padded during packing
+		#Assume the correct key length and additional padding at the end won't affect the result
+		key += " "
+
+	for index in range(len(stegmsg)):
+		currentmsgint = otp_ascii_int_to_otp_int(ord(stegmsg[index]))
+		currentkeyint = otp_ascii_int_to_otp_int(ord(key[index]))
+		writeint = (currentmsgint - currentkeyint) % 37
+		decodedmsg += chr(otp_otp_int_to_ascii_int(writeint))
+
+	return decodedmsg
+
 def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, verbose=False):
 	ciphermsgs = []
 
@@ -270,6 +327,23 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 			ciphermsgs.append(thissteg)
 
+	if cipher == "OTP":
+		#Can we fit your hidden message?
+		if jt65msgcount * 13 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+
+		stegmsg = otp_encode(stegmsg, key)
+
+		for index in range(jt65msgcount):
+			secretjt = jt.encode(stegmsg[index*13:index*13+13])
+
+			if verbose:
+				print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
+				print "Secret message " + str(index) + " encoded : " + str(secretjt)
+
+			ciphermsgs.append(secretjt)
+
 	return ciphermsgs
 
 def steginject(jt65data, noise, cipherdata, hidekey, verbose=False):
@@ -301,7 +375,7 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 	stegedmsgba = np.array(range(0),dtype=np.int32)
 
 	for index,value in enumerate(stegdata):
-		if cipher == "none":
+		if cipher == "none" or cipher=="OTP":
 			recoveredtext = jt.decode(value)[0:13]
 			if verbose:
 				print "Steg Text in Message " + str(index) + " : " + recoveredtext
@@ -357,5 +431,8 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 			finalcipherdata = finalcipherdata[16:]
 
 		stegedmsg = cryptobj.decrypt(finalcipherdata)
+
+	if cipher == "OTP":
+		stegedmsg = otp_decode(stegedmsg, key)
 
 	return stegedmsg
