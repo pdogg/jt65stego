@@ -107,6 +107,13 @@ class TestStegFunctions(unittest.TestCase):
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
+	def test_CreateCipher_ARC4(self):
+		result = jts.createciphermsgs(2, "DEF CON 22", "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
+		expectedresult = [np.array([0,12,25,53,53,37,31,1,1,11,39,47]), np.array([0,16,47,5,14,48,32,50,5,25,27,41])]
+		self.assertEqual(len(expectedresult), len(result))
+		for i in range(len(expectedresult)):
+			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
+
 	def test_CreateCipher_AES_ECB(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
 		expectedresult = [np.array([0,10,35,51,56,46,33,50,21,13,41,61]), np.array([0,20,26,16,36,8,6,62,60,32,24,61])]
@@ -144,6 +151,11 @@ class TestStegFunctions(unittest.TestCase):
 		stegdata = [np.array([16,52,50,11,6,13,41,26,39,15,39,11]),np.array([20,36,39,11,59,23,28,16,53,8,57,0])]
 		result = jts.deciphersteg(stegdata, "none", "", "", False)
 		self.assertEqual(result.rstrip(), "BEACON FTW AND DEF CON 22")
+
+	def test_DecipherSteg_ARC4(self):
+		stegdata = [np.array([0,12,25,53,53,37,31,1,1,11,39,47]), np.array([0,16,47,5,14,48,32,50,5,25,27,41])]
+		result = jts.deciphersteg(stegdata, "ARC4", "RC4 is the most secure algorithm in the world", "", False)
+		self.assertEqual(result.rstrip(), "DEF CON 22")
 
 	def test_DecipherSteg_AES_ECB(self):
 		stegdata = [np.array([0,10,35,51,56,46,33,50,21,13,41,61]),np.array([0,20,26,16,36,8,6,62,60,32,24,61])]

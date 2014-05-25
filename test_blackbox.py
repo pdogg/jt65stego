@@ -50,6 +50,31 @@ class TestBlackBox(unittest.TestCase):
 			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 		self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
 
+	def test_ARC4(self):
+		#Encode
+		jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+		jt65data = jts.jt65encodemessages(jt65msgs, False)
+		stegmsg = "DEF CON 22"
+		cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
+		finalmsgs = jts.steginject(jt65data, 0, cipherdata, hidekey, True)
+
+		expectedresult = [np.array([50,0,14,12,57,25,1,53,13,53,58,37,27,31,2,1,44,1,20,11,52,39,12,47,34,33,12,62,59,61,24,50,
+									20,34,48,37,25,31,49,10,39,11,26,48,7,23,2,26,41,28,7,10,41,49,28,7,6,23,14,49,62,53,63]),
+							np.array([45,0,52,16,1,47,48,5,13,14,51,48,1,32,37,50,54,5,51,25,60,27,29,41,56,33,7,28,1,20,10,30,
+									43,8,48,38,22,37,55,47,49,59,32,48,47,48,6,41,30,47,0,4,41,49,54,53,51,24,45,42,8,53,63])]
+		self.assertEqual(len(expectedresult), len(finalmsgs))
+		for i in range(len(expectedresult)):
+			self.assertEqual(finalmsgs[i].tolist(), expectedresult[i].tolist())
+		#Decode
+		finalresultmsgs = list(finalmsgs)
+		stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+		resultstegmsg = jts.deciphersteg(stegdata, "ARC4", "RC4 is the most secure algorithm in the world", "", False)
+		decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+		self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+		for i in range(len(jt65msgs)):
+			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+		self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
 	def test_AES_ECB(self):
 		#Encode
 		jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
