@@ -99,3 +99,21 @@ class TestBlackBox(unittest.TestCase):
 		for i in range(len(jt65msgs)):
 			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 		self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_AES_CBC(self):
+		#Encode
+		jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44","G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+		jt65data = jts.jt65encodemessages(jt65msgs, False)
+		stegmsg = "DEF CON 22"
+		cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CBC", False)
+		finalmsgs = jts.steginject(jt65data, 0, cipherdata, hidekey, True)
+
+		#Decode
+		finalresultmsgs = list(finalmsgs)
+		stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+		resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "CBC", False)
+		decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+		self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+		for i in range(len(jt65msgs)):
+			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+		self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())

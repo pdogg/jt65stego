@@ -208,23 +208,31 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 			print ("\nCipher key must be 16, 24, or 32 bytes... sorry :(\n")
 			sys.exit(0)
 
+		while len(stegmsg) % 16:
+			stegmsg += " "
+
 		#Can we fit your hidden message?
-		if jt65msgcount * 8 < len(stegmsg):
+		if aesmode == "ECB" and jt65msgcount * 8 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+		elif (aesmode == "CBC" or aesmode == "CFB") and (jt65msgcount * 8 < len(stegmsg) + 16):
+			#These two modes have an additional 16 byte IV
 			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
 			sys.exit(0)
 
 		#Prep the encrypted hidden data
+		iv = ""
 		if aesmode == "ECB":
 			cryptobj = AES.new(key, AES.MODE_ECB)
-		#elif aesmode == "CBC":
-		#	cryptobj = AES.new(key, AES.MODE_CBC)
-		#elif aesmode == "CFB":
-		#	cryptobj = AES.new(key, AES.MODE_CFB)
-		while len(stegmsg) % 16:
-			stegmsg += " "
+		elif aesmode == "CBC":
+			iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
+			cryptobj = AES.new(key, AES.MODE_CBC, iv)
+		elif aesmode == "CFB":
+			iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
+			cryptobj = AES.new(key, AES.MODE_CFB, iv)
 
 		cipherdata = cryptobj.encrypt(stegmsg)
-		cipherlist = list(bytearray(cipherdata))
+		cipherlist = list(bytearray(iv)) + list(bytearray(cipherdata))
 
 		if verbose: 			
 			print "Cipher list: " + str(cipherlist)
@@ -304,10 +312,12 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 
 		if aesmode == "ECB":
 			cryptobj = AES.new(key, AES.MODE_ECB)
-		#elif aesmode == "CBC":
-		#	cryptobj = AES.new(key, AES.MODE_CBC)
-		#elif aesmode == "CFB":
-		#	cryptobj = AES.new(key, AES.MODE_CFB)
+		elif aesmode == "CBC":
+			cryptobj = AES.new(key, AES.MODE_CBC, finalcipherdata[0:16])
+			finalcipherdata = finalcipherdata[16:]
+		elif aesmode == "CFB":
+			cryptobj = AES.new(key, AES.MODE_CFB, finalcipherdata[0:16])
+			finalcipherdata = finalcipherdata[16:]
 
 		stegedmsg = cryptobj.decrypt(finalcipherdata)
 

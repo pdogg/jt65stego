@@ -83,7 +83,7 @@ groupOptions.add_argument('--verbose', action='store_true', help='Verbose output
 groupEncryption.add_argument('--cipher', default='none', metavar='<type>', help='Supported ciphers are none, XOR, ARC4, AES, GPG, OTP (default: none)')
 groupEncryption.add_argument('--key', metavar='<key>', help='Cipher key (batch mode)')
 groupEncryption.add_argument('--recipient', metavar='<user>', help='Recipient for GPG mode')
-groupEncryption.add_argument('--aesmode', metavar='<mode>', help='Supported modes are ECB, CBC, CFB (default: ECB)')
+groupEncryption.add_argument('--aesmode', default='ECB', metavar='<mode>', choices=['ECB', 'CBC', 'CFB'], help='Supported modes are ECB, CBC, CFB (default: ECB)')
 groupEncodeOutput.add_argument('--stdout', action='store_true', help='Output to terminal (default)')
 groupEncodeOutput.add_argument('--wavout', metavar='<file1.wav>', help='Output to wav file(s) - Multiple files suffix -001.wav, -002.wav...')
 groupDecodeInput.add_argument('--stdin', action='store_true', help='Input from stdin (default)')
