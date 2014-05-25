@@ -80,7 +80,7 @@ groupOptions.add_argument('--batch', action='store_true', help='Batch mode, msgs
 groupOptions.add_argument('--jt65msg', metavar='<message1(,message2)(,message3)...>', help='Message to encode in JT65 (batch mode)')
 groupOptions.add_argument('--stegmsg', metavar='<message>', help='Message to hide in result (batch mode)')
 groupOptions.add_argument('--verbose', action='store_true', help='Verbose output')
-groupEncryption.add_argument('--cipher', default='none', metavar='<type>', help='Supported ciphers are none, XOR, ARC4, AES, GPG, OTP (default: none)')
+groupEncryption.add_argument('--cipher', default='none', metavar='<type>', choices=['none', 'XOR', 'ARC4', 'AES', 'GPG', 'OTP'], help='Supported ciphers are none, XOR, ARC4, AES, GPG, OTP (default: none)')
 groupEncryption.add_argument('--key', metavar='<key>', help='Cipher key (batch mode)')
 groupEncryption.add_argument('--recipient', metavar='<user>', help='Recipient for GPG mode')
 groupEncryption.add_argument('--aesmode', default='ECB', metavar='<mode>', choices=['ECB', 'CBC', 'CFB'], help='Supported modes are ECB, CBC, CFB (default: ECB)')

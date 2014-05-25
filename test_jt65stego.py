@@ -107,6 +107,13 @@ class TestStegFunctions(unittest.TestCase):
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
+	def test_CreateCipher_XOR(self):
+		result = jts.createciphermsgs(2, "DEF CON 22", "XOR", "XOR rox and all that jazz", "", "", False)
+		expectedresult = [np.array([0,1,48,10,5,0,0,49,8,3,24,0]), np.array([0,21,13,28,17,0,1,1,19,4,48,0])]
+		self.assertEqual(len(expectedresult), len(result))
+		for i in range(len(expectedresult)):
+			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
+
 	def test_CreateCipher_ARC4(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
 		expectedresult = [np.array([0,12,25,53,53,37,31,1,1,11,39,47]), np.array([0,16,47,5,14,48,32,50,5,25,27,41])]

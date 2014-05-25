@@ -4,6 +4,7 @@ import numpy as np
 import random
 from Crypto.Cipher import AES
 from Crypto.Cipher import ARC4
+from Crypto.Cipher import XOR
 from Crypto.Hash import SHA
 import hashlib
 import binascii
@@ -177,6 +178,30 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 			ciphermsgs.append(secretjt)
 
+	if cipher == "XOR":
+		#Can we fit your hidden message?
+		if jt65msgcount * 8 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+
+		while len(stegmsg) % 8:
+			stegmsg += " "
+
+		cryptobj = XOR.new(key)
+		cipherdata = cryptobj.encrypt(stegmsg)
+		cipherlist = list(bytearray(cipherdata))
+
+		if verbose: 			
+			print "Cipher list: " + str(cipherlist)
+
+		for index in range(jt65msgcount):
+			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+
+			if verbose:
+				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+
+			ciphermsgs.append(thissteg)
+
 	if cipher == "ARC4":
 		#Can we fit your hidden message?
 		if jt65msgcount * 8 < len(stegmsg):
@@ -287,6 +312,18 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 			if verbose:
 				print "Steg Data in Message " + str(index) + " : " + str(thisunstegbytes)
 			stegedmsgba = np.append(stegedmsgba, thisunstegbytes)
+
+	if cipher == "XOR":
+		if verbose:
+			print"Cipher Data : " + str(stegedmsgba)
+
+		finalcipherdata = (''.join('{0:02x}'.format(int(e)).decode("hex") for e in stegedmsgba))
+		
+		if verbose:
+			print"Cipher Data Hex : " + finalcipherdata
+
+		cryptobj = XOR.new(key)
+		stegedmsg = cryptobj.decrypt(finalcipherdata)
 
 	if cipher == "ARC4":
 		if verbose:
