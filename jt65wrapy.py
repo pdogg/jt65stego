@@ -33,6 +33,19 @@ def unprepmsg(recvd) :
 	JT65.unprepmsg(recvd, output)
 	return output
 
-#def callrsinit() :
-#	JT65.callrsinit()
-#	return 1
+def prepsteg(message) :
+#return an array of 6 bit symbols preped for transmission on the channel as a 20 symbol steg packet 
+#will do Reed Solomon coding
+	output = numpy.array(range(20),dtype=numpy.int32)
+	JT65.prepsteg(message,output)
+	return output
+
+def unprepsteg(recvd) :
+#return an array of 6 bit symbols representing a steg message from the supplied recvd packet
+#recvd packet is a numpy array of range 20 containing a prepped or received steg packet
+#will do Reed Solomon decoding
+# WARNING!!! - recvd is NOT preserved during this call remember to save and restore it
+
+	output = numpy.array(range(12),dtype=numpy.int32) #array to return
+	JT65.unprepsteg(recvd, output)
+	return output

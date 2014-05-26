@@ -9,6 +9,7 @@
 //#include "ccsds.h"
 //#elif defined(BIGSYM)
 #include "int.h"
+
 //#else
 //#include "char.h"
 //#endif
@@ -36,16 +37,21 @@ void *init_rs_int(int symsize,int gfpoly,int fcr,int prim,
 
   /* Check parameter ranges */
   if(symsize < 0 || symsize > 8*sizeof(DTYPE))
+  {puts("1");
     return NULL; /* Need version with ints rather than chars */
-
+  }
   if(fcr < 0 || fcr >= (1<<symsize))
-    return NULL;
+  { puts("2");
+    return NULL; }
   if(prim <= 0 || prim >= (1<<symsize))
-    return NULL;
+  { puts("3");
+    return NULL; }
   if(nroots < 0 || nroots >= (1<<symsize))
-    return NULL; /* Can't have more roots than symbol values! */
+  { puts("4");
+    return NULL; }/* Can't have more roots than symbol values! */
   if(pad < 0 || pad >= ((1<<symsize) -1 - nroots))
-    return NULL; /* Too much padding */
+  { puts("5");
+    return NULL; }/* Too much padding */
 
   rs = (struct rs *)calloc(1,sizeof(struct rs));
   rs->mm = symsize;
@@ -55,12 +61,14 @@ void *init_rs_int(int symsize,int gfpoly,int fcr,int prim,
   rs->alpha_to = (DTYPE *)malloc(sizeof(DTYPE)*(rs->nn+1));
   if(rs->alpha_to == NULL){
     free(rs);
+    puts("6");
     return NULL;
   }
   rs->index_of = (DTYPE *)malloc(sizeof(DTYPE)*(rs->nn+1));
   if(rs->index_of == NULL){
     free(rs->alpha_to);
     free(rs);
+    puts("7");
     return NULL;
   }
 
@@ -81,6 +89,7 @@ void *init_rs_int(int symsize,int gfpoly,int fcr,int prim,
     free(rs->alpha_to);
     free(rs->index_of);
     free(rs);
+    puts("8");
     return NULL;
   }
 
@@ -90,6 +99,7 @@ void *init_rs_int(int symsize,int gfpoly,int fcr,int prim,
     free(rs->alpha_to);
     free(rs->index_of);
     free(rs);
+    puts("9");
     return NULL;
   }
   rs->fcr = fcr;
