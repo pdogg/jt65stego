@@ -40,7 +40,7 @@ def randomcover(message, key, howmuch=10, verbose=False) :
 	locs = []
 	while noisecount < howmuch :
 		loc = random.randint(0,62)
-		while (loc in key) or (loc in locs) :
+		while loc in locs :
 			loc = random.randint(0,62)
 		locs.extend([loc])
 		if verbose:
