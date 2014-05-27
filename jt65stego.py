@@ -3,6 +3,12 @@ import jt65wrapy as jt
 import numpy as np
 import random
 from Crypto.Cipher import AES
+from Crypto.Cipher import ARC4
+from Crypto.Cipher import XOR
+from Crypto.Hash import SHA
+import hashlib
+import binascii
+import struct
 
 def jtsteg(prepedmsg,secretmsg,key) :
 #simple stego routine to enbed a secret message into a preped jt65 packet according to key
@@ -10,10 +16,9 @@ def jtsteg(prepedmsg,secretmsg,key) :
 # secretmsg - encoded jt65 mesage
 # key - list defining stego positions to insert as error
 # returns a jt65 packet as a numpy array
-	encsecretmsg = enc(secretmsg)
 	outputmsg = np.copy(prepedmsg)
-	for x in range(0,12):
-		outputmsg[key[x]]=encsecretmsg[x]
+	for x in range(len(secretmsg)):
+		outputmsg[key[x]]=secretmsg[x]
 	
 	return outputmsg
 
@@ -22,10 +27,10 @@ def jtunsteg(recdmsg,key) :
 # recdmsg - jt65 packet
 # key - list defining stego positions to interpret as message
 # returns a jt65 encoded string as a numpy array
-	output = np.array(range(12),dtype=np.int32) #array to return
-	for x in range(0,12):
+	output = np.array(range(20),dtype=np.int32) #array to return
+	for x in range(len(key)):
 		output[x] = recdmsg[key[x]]
-	return dec(output)
+	return output
 
 def randomcover(message, key, howmuch=10, verbose=False) :
 #insert some random cover noise
@@ -35,24 +40,49 @@ def randomcover(message, key, howmuch=10, verbose=False) :
 	locs = []
 	while noisecount < howmuch :
 		loc = random.randint(0,62)
-		while (loc in key) or (loc in locs) :
+		while loc in locs :
 			loc = random.randint(0,62)
 		locs.extend([loc])
 		if verbose:
 			print "loc: " + str(loc)
-		message[loc] = random.randint(0,63)
+		coverint = random.randint(0,63)
+		while coverint == message[loc]:
+			coverint = random.randint(0,63)
+		message[loc] = coverint
 		if verbose:
 			print str(noisecount) + " round of cover - changed " + str(loc) + " to " + str(message[loc])
 		noisecount += 1
 	return message
 
-def enc(msg) :
-#returns an "encoded" jt65 message based on a supplied message
-	return msg
-
-def dec(msg) :
-#returns a "decoded" jt65 message based on the supplied message
-	return msg
+def getnoisekey(password, length=12) :
+#I AM NOT A CRYPTOGRAPHER I HAVE NO IDEA IF THIS IS SAFE
+#THIS FEATURE LEAKS BITS OF THE sha512 HASH OF THE PASSWORD!!!
+#returns a "noisekey" given a password
+#md5 hashes the password and then uses it to determine the key (insertion locations on the stego)
+#returns FALSE if no valid key can be obtained
+#set length based on the length of key you want (12 for no_fec, 20 for stego with fec)
+   output = np.array(range(length),dtype=np.int32) #array to return
+   
+   sha512calc = hashlib.sha512()
+   sha512calc.update(password)
+   passwordhash = sha512calc.digest()
+#  print binascii.hexlify(passwordhash)
+   donthavekey = True
+   hashindex = 0
+   keyindex = 0
+   while donthavekey :
+    
+    if hashindex >= len(passwordhash) :
+      return False
+    potentialsymbol = int(struct.unpack("B",passwordhash[hashindex])[0]) % 63
+#    print potentialsymbol
+    if potentialsymbol not in output :
+      output[keyindex] = potentialsymbol
+      keyindex += 1
+    hashindex += 1  
+    if keyindex == length :
+      donthavekey = False
+   return output
 
 def jt65tobytes(jt65bytes):
 #Packs 12 byte JT65 message to 9 full bytes suitable for cipher
@@ -102,37 +132,164 @@ def bytes8tojt65(bytes, status):
 	output[11] = bytes[7] & 0x3F
 	return output
 
-def BatchEncode(jt65msg, stegmsg, noise, cipher, key, recipient, aesmode, verbose, stdout, wavout, hidekey):
-	jt65msgs = jt65msg.split(',')
+def jt65encodemessages(jt65msgs, verbose=False):
+#Encode valid text into array of JT65 data
+	jt65data = []
+
+	for index,value in enumerate(jt65msgs):
+		legitjt = jt.encode(value)
+		legitpacket = jt.prepmsg(legitjt)
+
+		if verbose:
+			print "JT65 legit message " + str(index) + " : " + value
+			print "Encoded as : " + str(legitjt)
+			print "Legit channel symbols with RS :" + str(legitpacket)
+
+		jt65data.append(legitpacket)
+
+	return jt65data
+
+def decodemessages(jt65data, verbose=False):
+#Decode valid JT65 messages from array of JT65 data
+	jt65msgs = []
+
+	for index,value in enumerate(jt65data):
+		jt65msg = jt.decode(jt.unprepmsg(value))
+		if verbose:
+			print "JT65 Message " + str(index) + " : " + jt65msg
+		jt65msgs.append(jt65msg)
+
+	return jt65msgs
+
+def otp_ascii_int_to_otp_int(charint):
+	if charint == 32:
+		return 0
+
+	if charint >= 48 and charint <= 57:
+		return charint - 47
+
+	if charint >= 65 and charint <= 90:
+		return charint - 54
+
+	print("OTP only supports CAPTIAL letters and numbers for steg data and key")
+	sys.exit(0)
+
+def otp_otp_int_to_ascii_int(charint):
+	if charint == 0:
+		return 32
+
+	if charint >= 1 and charint <= 10:
+		return charint + 47
+
+	if charint >= 11 and charint <= 36:
+		return charint + 54
+
+	print("OTP only supports CAPTIAL letters and numbers for steg data and key")
+	sys.exit(0)
+
+def otp_encode(stegmsg, key):
+	encodedmsg = ""
+
+	if len(key) < len(stegmsg):
+		print("Length of OTP key must be equal to or greater than hidden data length")
+		sys.exit(0)
+
+	for index in range(len(stegmsg)):
+		currentmsgint = otp_ascii_int_to_otp_int(ord(stegmsg[index]))
+		currentkeyint = otp_ascii_int_to_otp_int(ord(key[index]))
+		writeint = (currentmsgint + currentkeyint) % 37
+		encodedmsg += chr(otp_otp_int_to_ascii_int(writeint))
+
+	return encodedmsg
+
+def otp_decode(stegmsg, key):
+	decodedmsg = ""
+
+	while len(key) < len(stegmsg):
+		#We have no way of knowing the true length of the stegmsg during decode since it gets padded during packing
+		#Assume the correct key length and additional padding at the end won't affect the result
+		key += " "
+
+	for index in range(len(stegmsg)):
+		currentmsgint = otp_ascii_int_to_otp_int(ord(stegmsg[index]))
+		currentkeyint = otp_ascii_int_to_otp_int(ord(key[index]))
+		writeint = (currentmsgint - currentkeyint) % 37
+		decodedmsg += chr(otp_otp_int_to_ascii_int(writeint))
+
+	return decodedmsg
+
+def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, verbose=False):
+	ciphermsgs = []
 
 	if cipher == "none":
 		#Can we fit your hidden message?
-		if len(jt65msgs) * 13 < len(stegmsg):
+		if jt65msgcount * 13 < len(stegmsg):
 			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
 			sys.exit(0)
 
-		for index,value in enumerate(jt65msgs):
-			legitjt = jt.encode(value)
+		for index in range(jt65msgcount):
 			secretjt = jt.encode(stegmsg[index*13:index*13+13])
-			legitpacket = jt.prepmsg(legitjt)
+			secretjtfec = jt.prepsteg(secretjt)
 
 			if verbose:
-				print "JT65 legit message 	: " + value
-				print "Encoded as		: " + str(legitjt)
-				print "\nLegit channel symbols with RS:"
-				print legitpacket
-				print "\nSecret message		: " + stegmsg[index*13:index*13+13]
-				print "Secret message encoded  : " + str(secretjt)
+				print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
+				print "Secret message " + str(index) + " encoded : " + str(secretjt)
+				print "Secret message " + str(index) + " encoded with FEC : " + str(secretjtfec)
 
-			stegedpacket = jtsteg(legitpacket,secretjt,hidekey)
-			stegedpacket = randomcover(stegedpacket,hidekey,noise,verbose)
+			ciphermsgs.append(secretjtfec)
+
+	if cipher == "XOR":
+		#Can we fit your hidden message?
+		if jt65msgcount * 8 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+
+		while len(stegmsg) % 8:
+			stegmsg += " "
+
+		cryptobj = XOR.new(key)
+		cipherdata = cryptobj.encrypt(stegmsg)
+		cipherlist = list(bytearray(cipherdata))
+
+		if verbose: 			
+			print "Cipher list: " + str(cipherlist)
+
+		for index in range(jt65msgcount):
+			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+			secretjtfec = jt.prepsteg(thissteg)
 
 			if verbose:
-				print "Stego with key		: " + str(hidekey)
+				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
 
-			if stdout:
-				np.set_printoptions(linewidth=300)
-				print stegedpacket
+			ciphermsgs.append(secretjtfec)
+
+	if cipher == "ARC4":
+		#Can we fit your hidden message?
+		if jt65msgcount * 8 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+
+		while len(stegmsg) % 8:
+			stegmsg += " "
+
+		tempkey = SHA.new(key).digest()
+		cryptobj = ARC4.new(tempkey)
+		cipherdata = cryptobj.encrypt(stegmsg)
+		cipherlist = list(bytearray(cipherdata))
+
+		if verbose: 			
+			print "Cipher list: " + str(cipherlist)
+
+		for index in range(jt65msgcount):
+			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+			secretjtfec = jt.prepsteg(thissteg)
+
+			if verbose:
+				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
+
+			ciphermsgs.append(secretjtfec)
 
 	if cipher == "AES":
 		#Check key size
@@ -140,92 +297,157 @@ def BatchEncode(jt65msg, stegmsg, noise, cipher, key, recipient, aesmode, verbos
 			print ("\nCipher key must be 16, 24, or 32 bytes... sorry :(\n")
 			sys.exit(0)
 
+		while len(stegmsg) % 16:
+			stegmsg += " "
+
 		#Can we fit your hidden message?
-		if len(jt65msgs) * 8 < len(stegmsg):
+		if aesmode == "ECB" and jt65msgcount * 8 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+		elif (aesmode == "CBC" or aesmode == "CFB") and (jt65msgcount * 8 < len(stegmsg) + 16):
+			#These two modes have an additional 16 byte IV
 			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
 			sys.exit(0)
 
 		#Prep the encrypted hidden data
+		iv = ""
 		if aesmode == "ECB":
 			cryptobj = AES.new(key, AES.MODE_ECB)
-		#elif aesmode == "CBC":
-		#	cryptobj = AES.new(key, AES.MODE_CBC)
-		#elif aesmode == "CFB":
-		#	cryptobj = AES.new(key, AES.MODE_CFB)
-		while len(stegmsg) % 16:
-			stegmsg += " "
+		elif aesmode == "CBC":
+			iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
+			cryptobj = AES.new(key, AES.MODE_CBC, iv)
+		elif aesmode == "CFB":
+			iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
+			cryptobj = AES.new(key, AES.MODE_CFB, iv)
 
 		cipherdata = cryptobj.encrypt(stegmsg)
-		cipherlist = list(bytearray(cipherdata))
+		cipherlist = list(bytearray(iv)) + list(bytearray(cipherdata))
 
 		if verbose: 			
-			print "\nCipher list: " + str(cipherlist)
+			print "Cipher list: " + str(cipherlist)
 
-		for index,value in enumerate(jt65msgs):
+		for index in range(jt65msgcount):
 			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+			secretjtfec = jt.prepsteg(thissteg)
 
 			if verbose:
+				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
 
-				print "\nJT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-				print "\nStego with key		: " + str(hidekey)
+			ciphermsgs.append(secretjtfec)
 
-			legitjt = jt.encode(value)
-			legitpacket = jt.prepmsg(legitjt)
-			stegedpacket = jtsteg(legitpacket,thissteg,hidekey)
-			stegedpacket = randomcover(stegedpacket,hidekey,noise)
+	if cipher == "OTP":
+		#Can we fit your hidden message?
+		if jt65msgcount * 13 < len(stegmsg):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
 
-			if stdout:
-				np.set_printoptions(linewidth=300)
-				print stegedpacket
+		stegmsg = otp_encode(stegmsg, key)
 
-def BatchDecode(cipher, key, aesmode, verbose, stdin, wavin, hidekey):
+		for index in range(jt65msgcount):
+			secretjt = jt.encode(stegmsg[index*13:index*13+13])
+			secretjtfec = jt.prepsteg(secretjt)
+
+			if verbose:
+				print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
+				print "Secret message " + str(index) + " encoded : " + str(secretjt)
+				print "Secret message " + str(index) + " encoded with FEC : " + str(secretjt)
+
+			ciphermsgs.append(secretjtfec)
+
+	return ciphermsgs
+
+def steginject(jt65data, noise, cipherdata, hidekey, verbose=False):
+#Combine array of JT65 valid messages with array of JT65 encoded steg data
+	finalpackets = []
+
+	for index in range(len(jt65data)):
+		stegedpacket = jtsteg(jt65data[index],cipherdata[index],hidekey)
+		stegedpacket = randomcover(stegedpacket,hidekey,noise,verbose)
+		finalpackets.append(stegedpacket)
+
+	return finalpackets
+
+def retrievesteg(jt65data, hidekey, verbose=False):
+#Retrieve steganography data from array of JT65 data
+	stegdata = []
+
+	for index,value in enumerate(jt65data):
+		data = jtunsteg(value,hidekey)
+
+		if verbose:
+			print "Steg Bytes in Message " + str(index) + " : " + str(data)
+
+		stegdata.append(data)
+
+	return stegdata
+
+def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
+#Decipher hidden message from array of data hidden in JT65 errors
 	stegedmsg = ""
 	stegedmsgba = np.array(range(0),dtype=np.int32)
 
-	if stdin:
-		stdinput = sys.stdin.readlines()
-	
-	for index,value in enumerate(stdinput):
-		if verbose:
-			print "Message " + str(index) + " : " + value
+	for index,value in enumerate(stegdata):
+		value = jt.unprepsteg(value) #Decode real data from FEC
 
-		numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
-		print "\nDecoded JT65 message " + str(index) + ": " + jt.decode(jt.unprepmsg(numpymsg))
-
-		if cipher == "none":
-			recoveredsteg = jtunsteg(numpymsg,hidekey)
-			recoveredtext = jt.decode(recoveredsteg)[0:13]
+		if cipher == "none" or cipher=="OTP":
+			recoveredtext = jt.decode(value)[0:13]
 			if verbose:
-				print "\nRecovered Stego message : " + str(recoveredsteg)
-				print "\nText : " + recoveredtext
+				print "Steg Text in Message " + str(index) + " : " + recoveredtext
 			stegedmsg += recoveredtext
 
 		else:
-			thisunsteg = jtunsteg(numpymsg,hidekey)
-			thisunstegbytes = jt65tobytes(thisunsteg)[1:10]
-
+			thisunstegbytes = jt65tobytes(value)[1:10]
 			if verbose:
-				print "\nRecovered Stego message " + str(index) + " : " + str(thisunsteg)
-				print "\nStego message " + str(index) + " bytes : " + str(thisunstegbytes)
-
+				print "Steg Data in Message " + str(index) + " : " + str(thisunstegbytes)
 			stegedmsgba = np.append(stegedmsgba, thisunstegbytes)
 
-	if cipher == "AES":
+	if cipher == "XOR":
 		if verbose:
-			print"\nCipher Data A : " + str(stegedmsgba)
+			print"Cipher Data : " + str(stegedmsgba)
 
 		finalcipherdata = (''.join('{0:02x}'.format(int(e)).decode("hex") for e in stegedmsgba))
 		
 		if verbose:
-			print"\nCipher Data B : " + finalcipherdata
+			print"Cipher Data Hex : " + finalcipherdata
+
+		cryptobj = XOR.new(key)
+		stegedmsg = cryptobj.decrypt(finalcipherdata)
+
+	if cipher == "ARC4":
+		if verbose:
+			print"Cipher Data : " + str(stegedmsgba)
+
+		finalcipherdata = (''.join('{0:02x}'.format(int(e)).decode("hex") for e in stegedmsgba))
+		
+		if verbose:
+			print"Cipher Data Hex : " + finalcipherdata
+
+		tempkey = SHA.new(key).digest()
+		cryptobj = ARC4.new(tempkey)
+		stegedmsg = cryptobj.decrypt(finalcipherdata)
+
+	if cipher == "AES":
+		if verbose:
+			print"Cipher Data : " + str(stegedmsgba)
+
+		finalcipherdata = (''.join('{0:02x}'.format(int(e)).decode("hex") for e in stegedmsgba))
+		
+		if verbose:
+			print"Cipher Data Hex : " + finalcipherdata
 
 		if aesmode == "ECB":
 			cryptobj = AES.new(key, AES.MODE_ECB)
-		#elif aesmode == "CBC":
-		#	cryptobj = AES.new(key, AES.MODE_CBC)
-		#elif aesmode == "CFB":
-		#	cryptobj = AES.new(key, AES.MODE_CFB)
+		elif aesmode == "CBC":
+			cryptobj = AES.new(key, AES.MODE_CBC, finalcipherdata[0:16])
+			finalcipherdata = finalcipherdata[16:]
+		elif aesmode == "CFB":
+			cryptobj = AES.new(key, AES.MODE_CFB, finalcipherdata[0:16])
+			finalcipherdata = finalcipherdata[16:]
 
 		stegedmsg = cryptobj.decrypt(finalcipherdata)
 
-	print "\nStego message : " + stegedmsg
+	if cipher == "OTP":
+		stegedmsg = otp_decode(stegedmsg, key)
+
+	return stegedmsg

@@ -45,34 +45,62 @@ def toneswithsync(message, m=1, offset=0):
 	
 	return output
 
- 
+def outputwavfile(filename, tones, mode=1):
+ #Creates .wav file with tones for broadcast
+ # or for decoding in JT-65 tools
+ #
+ # Mode 0: Decodable by WSJT
+ # Mode 1: Decodable by WSJT-X
 
-def outputwavfile(filename, tones):
- 
-  data_size = 4096 #samples per jt65 symbol
-  frate = 11025.0  # framerate as a float
-#  amp = 64000.0     # multiplier for amplitude
-  amp = 1000.0
+  if mode == 0:
+    # WSJT
+    data_size = 4096 #samples per jt65 symbol
+    frate = 11025.0  # framerate as a float
+
+  elif mode == 1:
+    # WSJT-X
+    data_size = 4464 #samples per jt65 symbol
+    frate = 12000.0  # framerate as a float
+
+  else:
+    print("Unsupported wav file output mode : " + mode)
+    sys.exit(0)
 
   wav_file = wave.open(filename, "w")
 
+  amp = 1000.0     # multiplier for amplitude
   nchannels = 1
   sampwidth = 2
   framerate = int(frate)
-  nframes = 11026 + (data_size * 126) #add 1 second of frames + the number of symbols * size of symbols
+  nframes = frate * 60 # one full minute of audio
   comptype = "NONE"
   compname = "not compressed"
 
+  values = []
+  packed_zeros = struct.pack('h',int(0))  
+
   wav_file.setparams((nchannels, sampwidth, framerate, nframes, comptype, compname))
-  for i in range(0,11026):
-    wav_file.writeframes(struct.pack('h',int(0)))  # enjoy 1 second of silence (jt65 specs say start tx 1 sec after start of min)
+  
+  # Enjoy 1 second of silence (jt65 specs say start tx 1 sec after start of min)
+  for i in range(0,framerate):        
+    values.append(packed_zeros)
+  
+  # Generate the 126 tones for the wav file
   for index in range(0,126): 
     sine_list_x = []
     for x in range(data_size):
       sine_list_x.append(math.sin(2*math.pi*tones[index]*(x/frate)))
     for s in sine_list_x:
-    # write the audio frames to file
-      wav_file.writeframes(struct.pack('h', int(s*amp/2)))
+      packed_value = struct.pack('h', int(s*amp/2))
+      values.append(packed_value)
 
+  # Finish out the minute with silence for the decoders to be happy with the .wav file
+  for i in range(0,(framerate * 59) - (126 * data_size)):
+    values.append(packed_zeros)
+
+  # Write to file
+  value_str = ''.join(values)
+  wav_file.writeframes(value_str)
   wav_file.close()
+  
   return filename
