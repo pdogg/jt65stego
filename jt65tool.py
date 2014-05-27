@@ -28,7 +28,7 @@ def SetArgumentDefaults(args):
 	if not args.stdin and not args.wavin:
 		args.stdin = True
 
-def processoutput(finalmsgs, stdout, wavout, verbose):
+def processoutput(finalmsgs, stdout, wavout, wsjt, verbose):
 #Send JT65 messages to output specified by user
 	if stdout:
 		np.set_printoptions(linewidth=300)
@@ -37,6 +37,11 @@ def processoutput(finalmsgs, stdout, wavout, verbose):
 			print msg
 
 	if wavout:
+		wavmode = 1 	#Set mode to WSJT-X
+
+		if wsjt:
+			wavmode = 0
+
 		if wavout.endswith('.wav'):
 			wavout = wavout[:-4]
 
@@ -47,7 +52,7 @@ def processoutput(finalmsgs, stdout, wavout, verbose):
 				print "Generating audio file " + str(index) + " : " + filename
 				
 			tones = jt65sound.toneswithsync(value)
-			jt65sound.outputwavfile(filename, tones)
+			jt65sound.outputwavfile(filename, tones, wavmode)
 
 def processinput(stdin, wavin, verbose):
 #Process input from stdin or wavs and return array of JT65 data
@@ -86,6 +91,7 @@ groupEncryption.add_argument('--recipient', metavar='<user>', help='Recipient fo
 groupEncryption.add_argument('--aesmode', default='ECB', metavar='<mode>', choices=['ECB', 'CBC', 'CFB'], help='Supported modes are ECB, CBC, CFB (default: ECB)')
 groupEncodeOutput.add_argument('--stdout', action='store_true', help='Output to terminal (default)')
 groupEncodeOutput.add_argument('--wavout', metavar='<file1.wav>', help='Output to wav file(s) - Multiple files suffix -001.wav, -002.wav...')
+groupEncodeOutput.add_argument('--wsjt', action='store_true', help='Output wav file compatible with WSJT instead of WSJT-X')
 groupDecodeInput.add_argument('--stdin', action='store_true', help='Input from stdin (default)')
 groupDecodeInput.add_argument('--wavin', metavar='<file1.wav(,file2.wav)(,file3.wav)...>', help='Input from wav file(s)')
 args = parser.parse_args()
@@ -116,7 +122,7 @@ if args.batch and args.encode:
 			finalmsgs.append(jts.randomcover(msg,[],args.noise,args.verbose))
 
 	#Send to output
-	processoutput(finalmsgs, args.stdout, args.wavout, args.verbose)
+	processoutput(finalmsgs, args.stdout, args.wavout, args.wsjt, args.verbose)
 
 # Decode
 elif args.decode:
