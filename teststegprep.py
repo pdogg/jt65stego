@@ -9,7 +9,8 @@ test4 = jt.unprepsteg(test2)
 test2[1] = 13
 test2[5] = 13
 test2[18] = 13
-
+test2[9] = 13
+test2[3] = 13
 print test2
 
 test3 = jt.unprepsteg(test2)
