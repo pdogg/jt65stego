@@ -4,7 +4,7 @@ import random
 import numpy as np
 import jt65stego as jts
 
-hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
+hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
 JT65_MAX_SYMBOL = 63
 RANDOM_TEST_LOOP_COUNT = 10
 
@@ -13,7 +13,7 @@ class TestStegFunctions(unittest.TestCase):
 	def test_StegAndUnsteg(self):
 		for i in range(RANDOM_TEST_LOOP_COUNT):
 			randomvalidmessage = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(64)])
-			randomstegmessage  = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(12)])
+			randomstegmessage  = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(20)])
 			resultA = jts.jtsteg(randomvalidmessage, randomstegmessage, hidekey)
 			resultB = jts.jtunsteg(resultA, hidekey)
 			self.assertEqual(resultB.tolist(), randomstegmessage.tolist())
@@ -21,14 +21,14 @@ class TestStegFunctions(unittest.TestCase):
 	def test_StegAndUnstegNegative(self):
 		for i in range(RANDOM_TEST_LOOP_COUNT):
 			randomvalidmessage = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(64)])
-			randomstegmessage  = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(12)])
+			randomstegmessage  = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(20)])
 			resultA = jts.jtsteg(randomvalidmessage, randomstegmessage, hidekey)
 			resultB = jts.jtunsteg(resultA, hidekey)
 			# Should not be equal, unsteg returns the steg message not the valid message
 			self.assertNotEqual(resultB.tolist(), randomvalidmessage.tolist())
 
 	def test_RandomCover(self):
-		for i in range(52):
+		for i in range(63-len(hidekey)):
 			miscount = 0
 			randomvalidmessage = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(64)])
 			msgcopy=np.copy(randomvalidmessage)
@@ -192,28 +192,28 @@ class TestStegFunctions(unittest.TestCase):
 
 	def test_CreateCipher_None(self):
 		result = jts.createciphermsgs(2, "BEACON FTW AND DEF CON 22", "none", "", "", "", False)
-		expectedresult = [np.array([16,52,50,11,6,13,41,26,39,15,39,11]), np.array([20,36,39,11,59,23,28,16,53,8,57,0])]
+		expectedresult = [np.array([47,44,14,33,4,58,19,6,16,52,50,11,6,13,41,26,39,15,39,11]), np.array([22,29,9,53,17,23,57,14,20,36,39,11,59,23,28,16,53,8,57,0])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
 	def test_CreateCipher_XOR(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "XOR", "XOR rox and all that jazz", "", "", False)
-		expectedresult = [np.array([0,1,48,10,5,0,0,49,8,3,24,0]), np.array([0,21,13,28,17,0,1,1,19,4,48,0])]
+		expectedresult = [np.array([47,27,53,5,31,58,30,28,0,1,48,10,5,0,0,49,8,3,24,0]), np.array([41,30,8,56,6,59,51,39,0,21,13,28,17,0,1,1,19,4,48,0])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
 	def test_CreateCipher_ARC4(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
-		expectedresult = [np.array([0,12,25,53,53,37,31,1,1,11,39,47]), np.array([0,16,47,5,14,48,32,50,5,25,27,41])]
+		expectedresult = [np.array([35, 36, 29, 45, 39, 33, 48, 7, 0, 12, 25, 53, 53, 37, 31, 1, 1, 11, 39, 47]), np.array([54, 61, 22, 35, 39, 18, 61, 28, 0, 16, 47, 5, 14, 48, 32, 50, 5, 25, 27, 41])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
 	def test_CreateCipher_AES_ECB(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
-		expectedresult = [np.array([0,10,35,51,56,46,33,50,21,13,41,61]), np.array([0,20,26,16,36,8,6,62,60,32,24,61])]
+		expectedresult = [np.array([5, 10, 17, 54, 25, 26, 30, 30, 0, 10, 35, 51, 56, 46, 33, 50, 21, 13, 41, 61]), np.array([33, 16, 25, 6, 19, 8, 11, 0, 0, 20, 26, 16, 36, 8, 6, 62, 60, 32, 24, 61])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
@@ -223,38 +223,36 @@ class TestStegFunctions(unittest.TestCase):
 						  			47,39,55,23,61,25,58,47,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24]),
 						  np.array([20,34,19,5,36,6,30,15,22,20,3,62,57,59,19,56,17,35,2,9,41,10,23,24,41,35,39,60,48,33,34,49,
 						  			54,53,55,23,24,59,7,9,39,51,23,17,2,12,49,6,46,7,61,49,18,41,50,16,40,8,45,55,45,7,24])]
-		cipherdata = [np.array([16,52,50,11,6,13,41,26,39,15,39,11]), np.array([20,36,39,11,59,23,28,16,53,8,57,0])]
-		result = jts.steginject(jt65data, 0, cipherdata, [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23], False)
-		expectedresult = [np.array([14,16,9,52,4,50,41,11,22,6,43,13,30,41,15,26,25,39,50,15,0,39,17,11,33,35,39,22,25,39,
-									46,3,47,39,55,23,61,25,58,47,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24]),
-							np.array([20,20,19,36,36,39,30,11,22,59,3,23,57,28,19,16,17,53,2,8,41,57,23,0,41,35,39,60,48,33,
-								34,49,54,53,55,23,24,59,7,9,39,51,23,17,2,12,49,6,46,7,61,49,18,41,50,16,40,8,45,55,45,7,24])]
+		cipherdata = [np.array([47,27,53,5,31,58,30,28,0,1,48,10,5,0,0,49,8,3,24,0]), np.array([41,30,8,56,6,59,51,39,0,21,13,28,17,0,1,1,19,4,48,0])]
+		result = jts.steginject(jt65data, 0, cipherdata, hidekey, False)
+		expectedresult = [np.array([14,47,9,27,4,53,41,5,22,31,43,58,30,30,15,28,25,0,50,1,0,48,17,10,33,5,39,0,25,0,46,49,
+									47,8,55,3,61,24,58,0,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24]),
+							np.array([20,41,19,30,36,8,30,56,22,6,3,59,57,51,19,39,17,0,2,21,41,13,23,28,41,17,39,0,48,1,34,
+									1,54,19,55,4,24,48,7,0,39,51,23,17,2,12,49,6,46,7,61,49,18,41,50,16,40,8,45,55,45,7,24])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
 	def test_RetrieveSteg(self):
-		jt65data = [np.array([14,16,9,52,4,50,41,11,22,6,43,13,30,41,15,26,25,39,50,15,0,39,17,11,33,35,39,22,25,39,
-							46,3,47,39,55,23,61,25,58,47,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24]),
-					np.array([20,20,19,36,36,39,30,11,22,59,3,23,57,28,19,16,17,53,2,8,41,57,23,0,41,35,39,60,48,33,
-						34,49,54,53,55,23,24,59,7,9,39,51,23,17,2,12,49,6,46,7,61,49,18,41,50,16,40,8,45,55,45,7,24])]
-		expectedresult = [np.array([16,52,50,11,6,13,41,26,39,15,39,11]),np.array([20,36,39,11,59,23,28,16,53,8,57,0])]
-		result = jts.retrievesteg(jt65data, [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23], False)
+		jt65data = [np.array([14,47,9,27,4,53,41,5,22,31,43,58,30,30,15,28,25,0,50,1,0,48,17,10,33,5,39,0,25,0,46,49,47,8,55,3,61,24,58,0,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24]),
+					np.array([20,41,19,30,36,8,30,56,22,6,3,59,57,51,19,39,17,0,2,21,41,13,23,28,41,17,39,0,48,1,34,1,54,19,55,4,24,48,7,0,39,51,23,17,2,12,49,6,46,7,61,49,18,41,50,16,40,8,45,55,45,7,24])]
+		expectedresult = [np.array([47,27,53,5,31,58,30,28,0,1,48,10,5,0,0,49,8,3,24,0]),np.array([41,30,8,56,6,59,51,39,0,21,13,28,17,0,1,1,19,4,48,0])]
+		result = jts.retrievesteg(jt65data, hidekey, False)
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
 	def test_DecipherSteg_None(self):
-		stegdata = [np.array([16,52,50,11,6,13,41,26,39,15,39,11]),np.array([20,36,39,11,59,23,28,16,53,8,57,0])]
+		stegdata = [np.array([47,44,14,33,4,58,19,6,16,52,50,11,6,13,41,26,39,15,39,11]), np.array([22,29,9,53,17,23,57,14,20,36,39,11,59,23,28,16,53,8,57,0])]
 		result = jts.deciphersteg(stegdata, "none", "", "", False)
 		self.assertEqual(result.rstrip(), "BEACON FTW AND DEF CON 22")
 
 	def test_DecipherSteg_ARC4(self):
-		stegdata = [np.array([0,12,25,53,53,37,31,1,1,11,39,47]), np.array([0,16,47,5,14,48,32,50,5,25,27,41])]
+		stegdata = [np.array([35, 36, 29, 45, 39, 33, 48, 7, 0, 12, 25, 53, 53, 37, 31, 1, 1, 11, 39, 47]), np.array([54, 61, 22, 35, 39, 18, 61, 28, 0, 16, 47, 5, 14, 48, 32, 50, 5, 25, 27, 41])]
 		result = jts.deciphersteg(stegdata, "ARC4", "RC4 is the most secure algorithm in the world", "", False)
 		self.assertEqual(result.rstrip(), "DEF CON 22")
 
 	def test_DecipherSteg_AES_ECB(self):
-		stegdata = [np.array([0,10,35,51,56,46,33,50,21,13,41,61]),np.array([0,20,26,16,36,8,6,62,60,32,24,61])]
+		stegdata = [np.array([5, 10, 17, 54, 25, 26, 30, 30, 0, 10, 35, 51, 56, 46, 33, 50, 21, 13, 41, 61]), np.array([33, 16, 25, 6, 19, 8, 11, 0, 0, 20, 26, 16, 36, 8, 6, 62, 60, 32, 24, 61])]
 		result = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "ECB", False)
 		self.assertEqual(result.rstrip(), "DEF CON 22")

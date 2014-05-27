@@ -10,7 +10,7 @@ import numpy as np
 import jt65stego as jts
 import jt65sound
 
-hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
+hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
 
 def ValidateArguments(args):
 	if args.encode and args.decode:
@@ -79,7 +79,7 @@ groupEncodeOutput = parser.add_argument_group("Encode Output")
 groupDecodeInput = parser.add_argument_group("Decode Input")
 groupCommands.add_argument('--encode', action='store_true', help='Encode msg(s)')
 groupCommands.add_argument('--decode', action='store_true', help='Decode msg(s)')
-groupOptions.add_argument('--noise', type=int, default=5, metavar='<noise>', help='Amount of cover noise to insert')
+groupOptions.add_argument('--noise', type=int, default=0, metavar='<noise>', help='Amount of cover noise to insert (default: 0)')
 groupOptions.add_argument('--interactive', action='store_true', help='Interactive mode, prompt user for msgs (default)')
 groupOptions.add_argument('--batch', action='store_true', help='Batch mode, msgs must be parameters at command line')
 groupOptions.add_argument('--jt65msg', metavar='<message1(,message2)(,message3)...>', help='Message to encode in JT65 (batch mode)')

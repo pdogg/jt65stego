@@ -17,7 +17,7 @@ def jtsteg(prepedmsg,secretmsg,key) :
 # key - list defining stego positions to insert as error
 # returns a jt65 packet as a numpy array
 	outputmsg = np.copy(prepedmsg)
-	for x in range(0,12):
+	for x in range(len(secretmsg)):
 		outputmsg[key[x]]=secretmsg[x]
 	
 	return outputmsg
@@ -27,8 +27,8 @@ def jtunsteg(recdmsg,key) :
 # recdmsg - jt65 packet
 # key - list defining stego positions to interpret as message
 # returns a jt65 encoded string as a numpy array
-	output = np.array(range(12),dtype=np.int32) #array to return
-	for x in range(0,12):
+	output = np.array(range(20),dtype=np.int32) #array to return
+	for x in range(len(key)):
 		output[x] = recdmsg[key[x]]
 	return output
 
@@ -229,12 +229,14 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 		for index in range(jt65msgcount):
 			secretjt = jt.encode(stegmsg[index*13:index*13+13])
+			secretjtfec = jt.prepsteg(secretjt)
 
 			if verbose:
 				print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
 				print "Secret message " + str(index) + " encoded : " + str(secretjt)
+				print "Secret message " + str(index) + " encoded with FEC : " + str(secretjtfec)
 
-			ciphermsgs.append(secretjt)
+			ciphermsgs.append(secretjtfec)
 
 	if cipher == "XOR":
 		#Can we fit your hidden message?
@@ -254,11 +256,13 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 		for index in range(jt65msgcount):
 			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+			secretjtfec = jt.prepsteg(thissteg)
 
 			if verbose:
 				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
 
-			ciphermsgs.append(thissteg)
+			ciphermsgs.append(secretjtfec)
 
 	if cipher == "ARC4":
 		#Can we fit your hidden message?
@@ -279,11 +283,13 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 		for index in range(jt65msgcount):
 			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+			secretjtfec = jt.prepsteg(thissteg)
 
 			if verbose:
 				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
 
-			ciphermsgs.append(thissteg)
+			ciphermsgs.append(secretjtfec)
 
 	if cipher == "AES":
 		#Check key size
@@ -322,11 +328,13 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 		for index in range(jt65msgcount):
 			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+			secretjtfec = jt.prepsteg(thissteg)
 
 			if verbose:
 				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
 
-			ciphermsgs.append(thissteg)
+			ciphermsgs.append(secretjtfec)
 
 	if cipher == "OTP":
 		#Can we fit your hidden message?
@@ -338,12 +346,14 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 		for index in range(jt65msgcount):
 			secretjt = jt.encode(stegmsg[index*13:index*13+13])
+			secretjtfec = jt.prepsteg(secretjt)
 
 			if verbose:
 				print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
 				print "Secret message " + str(index) + " encoded : " + str(secretjt)
+				print "Secret message " + str(index) + " encoded with FEC : " + str(secretjt)
 
-			ciphermsgs.append(secretjt)
+			ciphermsgs.append(secretjtfec)
 
 	return ciphermsgs
 
@@ -364,8 +374,10 @@ def retrievesteg(jt65data, hidekey, verbose=False):
 
 	for index,value in enumerate(jt65data):
 		data = jtunsteg(value,hidekey)
+
 		if verbose:
 			print "Steg Bytes in Message " + str(index) + " : " + str(data)
+
 		stegdata.append(data)
 
 	return stegdata
@@ -376,6 +388,8 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 	stegedmsgba = np.array(range(0),dtype=np.int32)
 
 	for index,value in enumerate(stegdata):
+		value = jt.unprepsteg(value) #Decode real data from FEC
+
 		if cipher == "none" or cipher=="OTP":
 			recoveredtext = jt.decode(value)[0:13]
 			if verbose:

@@ -57,3 +57,27 @@ class TestWrapperFunctions(unittest.TestCase):
 		self.assertEqual(len(result2), len(expectedresult2))
 		self.assertEqual(result1.tolist(), expectedresult1.tolist())
 		self.assertEqual(result2.tolist(), expectedresult2.tolist())
+
+	def test_PrepSteg(self):
+		msg1 = np.array([16,52,50,11,6,13,41,26,39,15,39,11])
+		msg2 = np.array([20,36,39,11,59,23,28,16,53,8,57,0])
+		expectedresult1 = np.array([47,44,14,33,4,58,19,6,16,52,50,11,6,13,41,26,39,15,39,11])
+		expectedresult2 = np.array([22,29,9,53,17,23,57,14,20,36,39,11,59,23,28,16,53,8,57,0])
+		result1 = jt.prepsteg(msg1)
+		result2 = jt.prepsteg(msg2)
+		self.assertEqual(len(result1), len(expectedresult1))
+		self.assertEqual(len(result2), len(expectedresult2))
+		self.assertEqual(result1.tolist(), expectedresult1.tolist())
+		self.assertEqual(result2.tolist(), expectedresult2.tolist())
+
+	def test_UnPrepSteg(self):
+		msg1 = np.array([47,44,14,33,4,58,19,6,16,52,50,11,6,13,41,26,39,15,39,11])
+		msg2 = np.array([22,29,9,53,17,23,57,14,20,36,39,11,59,23,28,16,53,8,57,0])
+		expectedresult1 = np.array([16,52,50,11,6,13,41,26,39,15,39,11])
+		expectedresult2 = np.array([20,36,39,11,59,23,28,16,53,8,57,0])
+		result1 = jt.unprepsteg(msg1)
+		result2 = jt.unprepsteg(msg2)
+		self.assertEqual(len(result1), len(expectedresult1))
+		self.assertEqual(len(result2), len(expectedresult2))
+		self.assertEqual(result1.tolist(), expectedresult1.tolist())
+		self.assertEqual(result2.tolist(), expectedresult2.tolist())

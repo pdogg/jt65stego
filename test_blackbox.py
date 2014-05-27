@@ -4,8 +4,8 @@ import random
 import numpy as np
 import jt65stego as jts
 
-hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
-MAX_COVER_NOISE = 14
+hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
+MAX_COVER_NOISE = 5
 
 class TestBlackBox(unittest.TestCase):
 
@@ -140,7 +140,7 @@ class TestBlackBox(unittest.TestCase):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
 
-	def test_AES_OTP(self):
+	def test_OTP(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
 			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
