@@ -1,5 +1,7 @@
 	include 'jt65prep.f'
 	include 'jt65unprep.f'
+	include 'jt65prepsteg.f'
+	include 'jt65unprepsteg.f'
 	include 'igray.f'
 	include 'nchar.f'
 	include 'grid2deg.f'

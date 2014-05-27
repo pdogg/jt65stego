@@ -54,13 +54,14 @@ def randomcover(message, key, howmuch=10, verbose=False) :
 		noisecount += 1
 	return message
 
-def getnoisekey(password) :
+def getnoisekey(password, length=12) :
 #I AM NOT A CRYPTOGRAPHER I HAVE NO IDEA IF THIS IS SAFE
 #THIS FEATURE LEAKS BITS OF THE sha512 HASH OF THE PASSWORD!!!
 #returns a "noisekey" given a password
 #md5 hashes the password and then uses it to determine the key (insertion locations on the stego)
 #returns FALSE if no valid key can be obtained
-   output = np.array(range(12),dtype=np.int32) #array to return
+#set length based on the length of key you want (12 for no_fec, 20 for stego with fec)
+   output = np.array(range(length),dtype=np.int32) #array to return
    
    sha512calc = hashlib.sha512()
    sha512calc.update(password)
@@ -79,7 +80,7 @@ def getnoisekey(password) :
       output[keyindex] = potentialsymbol
       keyindex += 1
     hashindex += 1  
-    if keyindex == 12 :
+    if keyindex == length :
       donthavekey = False
    return output
 
