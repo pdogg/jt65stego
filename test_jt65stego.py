@@ -199,10 +199,9 @@ class TestStegFunctions(unittest.TestCase):
 
 	def test_CreateCipher_XOR(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "XOR", "XOR rox and all that jazz", "", "", False)
-		expectedresult = [np.array([47,27,53,5,31,58,30,28,0,1,48,10,5,0,0,49,8,3,24,0]), np.array([41,30,8,56,6,59,51,39,0,21,13,28,17,0,1,1,19,4,48,0])]
+		expectedresult = [np.array([3, 23, 29, 24, 60, 51, 39, 49, 2, 1, 48, 10, 5, 0, 0, 49, 8, 3, 24, 0]), np.array([8, 20, 52, 58, 43, 55, 6, 50, 0, 37, 13, 28, 44, 7, 24, 14, 58, 26, 17, 4])]
 		self.assertEqual(len(expectedresult), len(result))
-		for i in range(len(expectedresult)):
-			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
+		self.assertEqual(result[0].tolist(), expectedresult[0].tolist())	# Cannot verify second list due to random byte padding at end of XOR cipher
 
 	def test_CreateCipher_ARC4(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)

@@ -244,8 +244,9 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
 			sys.exit(0)
 
+		originallength = len(stegmsg)
 		while len(stegmsg) % 8:
-			stegmsg += " "
+			stegmsg += chr(random.randint(0, 255))
 
 		cryptobj = XOR.new(key)
 		cipherdata = cryptobj.encrypt(stegmsg)
@@ -255,7 +256,14 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 			print "Cipher list: " + str(cipherlist)
 
 		for index in range(jt65msgcount):
-			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+			#Determine how many bytes are in this message
+			if originallength >= 8:
+				thislength = 8
+			else:
+				thislength = originallength % 8
+			originallength -= 8
+
+			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], thislength)
 			secretjtfec = jt.prepsteg(thissteg)
 
 			if verbose:
@@ -386,6 +394,7 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 #Decipher hidden message from array of data hidden in JT65 errors
 	stegedmsg = ""
 	stegedmsgba = np.array(range(0),dtype=np.int32)
+	statusar = []
 
 	for index,value in enumerate(stegdata):
 		value = jt.unprepsteg(value) #Decode real data from FEC
@@ -396,8 +405,19 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 				print "Steg Text in Message " + str(index) + " : " + recoveredtext
 			stegedmsg += recoveredtext
 
+		elif cipher == "XOR":
+			thesebytes = jt65tobytes(value)
+			thisstatus = thesebytes[0:1]
+			thisunstegbytes = thesebytes[1:thisstatus+1]
+			
+			if verbose:
+				print "Steg Data in Message " + str(index) + " : " + str(thisunstegbytes)
+			stegedmsgba = np.append(stegedmsgba, thisunstegbytes)
+
 		else:
-			thisunstegbytes = jt65tobytes(value)[1:10]
+			thesebytes = jt65tobytes(value)
+			thisunstegbytes = thesebytes[1:10]
+			
 			if verbose:
 				print "Steg Data in Message " + str(index) + " : " + str(thisunstegbytes)
 			stegedmsgba = np.append(stegedmsgba, thisunstegbytes)
