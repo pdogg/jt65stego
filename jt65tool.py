@@ -61,12 +61,19 @@ def processinput(stdin, wavin, verbose):
 	if stdin:
 		stdinput = sys.stdin.readlines()
 
-		for index,value in enumerate(stdinput):
-			if verbose:
-				print "Raw Message " + str(index) + " : " + value
+		n = 0 
 
-			numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
-			JT65data.append(numpymsg)
+		for index,value in enumerate(stdinput):
+			if value.startswith("["):				#Filter to only JT65 messages, allows usage with output from --encode --verbose
+				if verbose:
+					print "Raw Message " + str(n) + " : " + value
+
+				numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
+				JT65data.append(numpymsg)
+				n = n + 1
+
+			elif verbose:
+				print value  #Shows any warnings, errors, or verbose output from stdin
 
 	return JT65data
 
