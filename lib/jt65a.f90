@@ -65,12 +65,12 @@ subroutine jt65a(dd,npts,newdat,nutc,nf1,nf2,nfqso,ntol,nagain,ndecoded)
           print *, decoded, ",", sync2, ",",  freq, ",",  a(1), ",",  a(2) !pdogg
           ndecoded=1
 ! pdogg - this commented stuffstuff crashes debian... skipping it for now <<XXX>> fix
-            nfreq=nint(freq+a(1))
-           ndrift=nint(2.0*a(2))
+!            nfreq=nint(freq+a(1))
+!           ndrift=nint(2.0*a(2))
 !           s2db=10.0*log10(sync2) - 32             !### empirical (was 40) ###
-           nsnr=nint(s2db)
-           if(nsnr.lt.-30) nsnr=-30
-           if(nsnr.gt.-1) nsnr=-1
+!           nsnr=nint(s2db)
+!           if(nsnr.lt.-30) nsnr=-30
+!           if(nsnr.gt.-1) nsnr=-1
 !           write(*,1010) nutc,nsnr,dt,nfreq,decoded
 !1010       format(i4.4,i4,f5.1,i5,1x,'#',1x,a22)
 !           write(13,1012) nutc,nint(sync1),nsnr,dt,float(nfreq),ndrift,  &
