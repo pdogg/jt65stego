@@ -1,7 +1,8 @@
 #Some usful wrapper functions for f2py version of JT65
 #@pdogg77 - paul@pauldrapeau.com Paul Drapeau 
+#@TheDukeZip - Brent Dukes
 
-import numpy, JT65
+import numpy, JT65, subprocess, os
 
 def encode(message) :
 #return a numpy array which is the 13 element JT65 message symbols
@@ -49,3 +50,24 @@ def unprepsteg(recvd) :
 	output = numpy.array(range(12),dtype=numpy.int32) #array to return
 	JT65.unprepsteg(recvd, output)
 	return output
+
+def decodewav(wavfile):
+#Returns symbol list, confidence, and decoded msg string from JT65 wav file
+#Calls the jt65 binary through subprocess (created from jt65.f90)
+#Possibly in the future interface directly with the fortran via f2py
+	symbols = []
+	confidence = []
+	jt65msg = ""
+
+	with open("decodetemp.txt", "w+") as f:
+		#subprocess.call(["/home/ph/Projects/defcon22/jt65stego/jt65", wavfile], stdout=f)
+		subprocess.call(["./jt65", wavfile], stdout=f)
+		f.seek(0)		# Reset to start reading from beginning of file
+		symbols = map(int, f.readline().replace("  ", " ").replace("\n", "").strip().split(" "))
+		confidence = map(int, f.readline().replace("  ", " ").replace("\n", "").strip().split(" "))
+		msgandstats = f.readline().replace("\n", "").split(",")
+		jt65msg, s2db, freq, a1, a2 = msgandstats
+
+	os.remove("decodetemp.txt")
+
+	return symbols, confidence, jt65msg.strip(), s2db.strip(), freq.strip(), a1.strip(), a2.strip()

@@ -1,8 +1,10 @@
 import unittest
 import random
+import os
 
 import numpy as np
 import jt65wrapy as jt
+import jt65sound		#Needed to create wav file to test decodewav()
 
 class TestWrapperFunctions(unittest.TestCase):
 
@@ -81,3 +83,15 @@ class TestWrapperFunctions(unittest.TestCase):
 		self.assertEqual(len(result2), len(expectedresult2))
 		self.assertEqual(result1.tolist(), expectedresult1.tolist())
 		self.assertEqual(result2.tolist(), expectedresult2.tolist())
+
+	def test_DecodeWav(self):
+		expectedresult = "G3LTF DL9KR JO40"
+		msg = np.array([14,16,9,18,4,60,41,18,22,63,43,5,30,13,15,9,25,35,50,21,0,36,17,42,33,35,39,22,25,39,46,3, 
+						47,39,55,23,61,25,58,47,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24])
+		tones = jt65sound.toneswithsync(msg)
+		jt65sound.outputwavfile("test_output.wav", tones)
+		symbols, confidence, jt65result, s2db, freq, a1, a2 = jt.decodewav("test_output.wav")
+		os.remove("test_output.wav")	#Cleanup!
+		self.assertEqual(symbols, msg.tolist())
+		self.assertEqual(confidence, [255] * 63)	#63 symbols with 100% confidence
+		self.assertEqual(jt65result, expectedresult)

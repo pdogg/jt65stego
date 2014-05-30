@@ -9,6 +9,7 @@ import argparse
 import numpy as np
 import jt65stego as jts
 import jt65sound
+import jt65wrapy as jt
 
 hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
 
@@ -74,6 +75,14 @@ def processinput(stdin, wavin, verbose):
 
 			elif verbose:
 				print value  #Shows any warnings, errors, or verbose output from stdin
+
+	elif wavin:
+		wavfiles = wavin.split(",")
+
+		for index,value in enumerate(wavfiles):
+			symbols, confidence, msg, s2db, freq, a1, a2 = jt.decodewav(value)
+			numpymsg = np.array(symbols)
+			JT65data.append(numpymsg)
 
 	return JT65data
 

@@ -1,13 +1,16 @@
 import unittest
 import random
+import os
 
 import numpy as np
 import jt65stego as jts
+import jt65sound
+import jt65wrapy as jt
 
 hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
 MAX_COVER_NOISE = 5
 
-class TestBlackBox(unittest.TestCase):
+class TestText(unittest.TestCase):
 
 	def test_NoCipher_NoSteg(self):
 		#Encode
@@ -151,6 +154,219 @@ class TestBlackBox(unittest.TestCase):
 
 			#Decode
 			finalresultmsgs = list(finalmsgs)
+			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "OTP", "I LOVE SECURITY AND STUFF", "", False)
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+#Separate class since these tests take a long time to run
+#You can exclude these tests if necessary
+class TestWav(unittest.TestCase):
+
+	def test_NoCipher_NoSteg_WAV(self):
+		#Encode
+		jt65msgs = ["G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+		jt65data = jts.jt65encodemessages(jt65msgs, False)
+		for index,value in enumerate(jt65data):
+			tones = jt65sound.toneswithsync(value)
+			jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
+
+		#Decode
+		symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
+		symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+		os.remove("test_output-000.wav")
+		os.remove("test_output-001.wav")
+		resultjt65data = [symbols1, symbols2]
+		decodedjt65msgs = jts.decodemessages(resultjt65data, False)
+		self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+		for i in range(len(jt65msgs)):
+			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+
+	def test_NoCipher_WithSteg_WAV(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "BEACON FTW AND DEF CON 22"
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "none", "", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+			for index,value in enumerate(finalmsgs):
+				tones = jt65sound.toneswithsync(value)
+				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
+
+			#Decode
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			os.remove("test_output-000.wav")
+			os.remove("test_output-001.wav")
+			finalresultmsgs = [symbols1, symbols2]
+			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "none", "", "", False)
+			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_XOR_WAV(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+			for index,value in enumerate(finalmsgs):
+				tones = jt65sound.toneswithsync(value)
+				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
+
+			#Decode
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			os.remove("test_output-000.wav")
+			os.remove("test_output-001.wav")
+			finalresultmsgs = [symbols1, symbols2]
+			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "XOR", "XOR rox and all that jazz", "", False)
+			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_ARC4_WAV(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+			for index,value in enumerate(finalmsgs):
+				tones = jt65sound.toneswithsync(value)
+				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
+
+			#Decode
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			os.remove("test_output-000.wav")
+			os.remove("test_output-001.wav")
+			finalresultmsgs = [symbols1, symbols2]
+			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "ARC4", "RC4 is the most secure algorithm in the world", "", False)
+			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_AES_ECB_WAV(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+			for index,value in enumerate(finalmsgs):
+				tones = jt65sound.toneswithsync(value)
+				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
+
+			#Decode
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			os.remove("test_output-000.wav")
+			os.remove("test_output-001.wav")
+			finalresultmsgs = [symbols1, symbols2]
+			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "ECB", False)
+			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_AES_CBC_WAV(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44","G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CBC", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+			for index,value in enumerate(finalmsgs):
+				tones = jt65sound.toneswithsync(value)
+				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
+
+			#Decode
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = jt.decodewav("test_output-002.wav")
+			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = jt.decodewav("test_output-003.wav")
+			os.remove("test_output-000.wav")
+			os.remove("test_output-001.wav")
+			os.remove("test_output-002.wav")
+			os.remove("test_output-003.wav")
+			finalresultmsgs = [symbols1, symbols2, symbols3, symbols4]
+			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "CBC", False)
+			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_AES_CFB_WAV(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44","G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CFB", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+			for index,value in enumerate(finalmsgs):
+				tones = jt65sound.toneswithsync(value)
+				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
+
+			#Decode
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = jt.decodewav("test_output-002.wav")
+			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = jt.decodewav("test_output-003.wav")
+			os.remove("test_output-000.wav")
+			os.remove("test_output-001.wav")
+			os.remove("test_output-002.wav")
+			os.remove("test_output-003.wav")
+			finalresultmsgs = [symbols1, symbols2, symbols3, symbols4]
+			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "CFB", False)
+			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_OTP_WAV(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "BEACON FTW AND DEF CON 22"
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "OTP", "I LOVE SECURITY AND STUFF", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+			for index,value in enumerate(finalmsgs):
+				tones = jt65sound.toneswithsync(value)
+				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
+
+			#Decode
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			os.remove("test_output-000.wav")
+			os.remove("test_output-001.wav")
+			finalresultmsgs = [symbols1, symbols2]
 			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "OTP", "I LOVE SECURITY AND STUFF", "", False)
 			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
