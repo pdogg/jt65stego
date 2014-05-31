@@ -3,6 +3,7 @@ import math
 import wave
 import sys
 import struct
+import jt65wrapy as jt
 
 ##some functions to calculate the tone values in hz for jt65 messages
 ## key function to call is tonewithsync it does all the work
@@ -104,3 +105,18 @@ def outputwavfile(filename, tones, mode=1):
   wav_file.close()
   
   return filename
+
+def inputwavfile(filename, verbose=False):
+  symbols, confidence, jt65msg, s2db, freq, a1, a2 = jt.decodewav(filename)
+
+  if verbose:
+    print "Decoded file : " + filename
+    print "Symbols : " + str(symbols)
+    print "Confidence : " + str(confidence)
+    print "JT65 Msg : " + jt65msg
+    print "S2DB : " + s2db
+    print "Freq : " + freq
+    print "a1 : " + a1
+    print "a2 : " + a2
+
+  return symbols, confidence, jt65msg, s2db, freq, a1, a2

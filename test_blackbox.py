@@ -5,7 +5,6 @@ import os
 import numpy as np
 import jt65stego as jts
 import jt65sound
-import jt65wrapy as jt
 
 hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
 MAX_COVER_NOISE = 5
@@ -175,8 +174,8 @@ class TestWav(unittest.TestCase):
 			jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 		#Decode
-		symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
-		symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+		symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
+		symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
 		os.remove("test_output-000.wav")
 		os.remove("test_output-001.wav")
 		resultjt65data = [symbols1, symbols2]
@@ -198,8 +197,8 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
@@ -224,8 +223,8 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
@@ -250,8 +249,8 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
@@ -276,8 +275,8 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
@@ -302,10 +301,10 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
-			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = jt.decodewav("test_output-002.wav")
-			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = jt.decodewav("test_output-003.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
+			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-002.wav")
+			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-003.wav")
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			os.remove("test_output-002.wav")
@@ -332,10 +331,10 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
-			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = jt.decodewav("test_output-002.wav")
-			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = jt.decodewav("test_output-003.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
+			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-002.wav")
+			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-003.wav")
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			os.remove("test_output-002.wav")
@@ -362,8 +361,8 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt.decodewav("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt.decodewav("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
