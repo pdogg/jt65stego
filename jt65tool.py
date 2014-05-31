@@ -6,6 +6,7 @@
 
 import sys
 import argparse
+import copy
 import numpy as np
 import jt65stego as jts
 import jt65sound
@@ -143,12 +144,13 @@ if args.batch and args.encode:
 elif args.decode:
 	#Process input to JT numpy arrays
 	jt65data = processinput(args.stdin, args.wavin, args.verbose)
+	jt65datacopy = copy.deepcopy(jt65data)	#Necessary on some version of Python due to 'unprepmsg' not preserving list
 
 	#Retrieve JT65 valid messages
 	jt65msgs = jts.decodemessages(jt65data, args.verbose)
 
 	#Retrieve steg message
-	stegdata = jts.retrievesteg(jt65data, hidekey, args.verbose)
+	stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
 
 	#Decipher steg message
 	stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
