@@ -25,11 +25,14 @@ def readfile(filename) :
   return rows
 
 def eq(a, b) :
+#for map in checkpacket
   return (a == b)
   
   
 def checkpacket(packet) :
 #packet is a two dimensional array of symbols and confidence
+#returns diffs list of [diff position, packet symbol, clean encode symbol, confidence]
+#if verbose prints <number of diffs>,<average confidence of diffs> to stdout
   symbols = packet[0]
   confidence = packet[1]
   
@@ -44,10 +47,10 @@ def checkpacket(packet) :
     if not symbolmap[i] :
       diffs.append([ i, symbols[i], realmessage[i], confidence[i] ])
       conftotal += confidence[i]
-  if diffs :    
-    print str(len(diffs)) +  " Errors - With Average Confidence of " + str(conftotal / len(diffs))
+  if diffs and verbose:    
+    print str(len(diffs)) +  "," + str(conftotal / len(diffs))
   
-  print diffs
+  return diffs
   
   
 
@@ -63,11 +66,13 @@ if __name__ == "__main__":
   
   args = parser.parse_args()
   
+  verbose = False
   #add some validation
   if args.verbose :
+    verbose = True
     print args.file
   packets = readfile(args.file)
-  if args.verbose :
+  if verbose :
     print packets
     
   checkpacket(packets)
