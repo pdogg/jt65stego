@@ -13,12 +13,14 @@ class TestText(unittest.TestCase):
 
 	def test_NoCipher_NoSteg(self):
 		#Encode
-		jt65msgs = ["G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+		jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 		jt65data = jts.jt65encodemessages(jt65msgs, False)
-		expectedresult = [np.array([14,16,9,18,4,60,41,18,22,63,43,5,30,13,15,9,25,35,50,21,0,36,17,42,33,35,39,22,25,39,46,3, 
-						  			47,39,55,23,61,25,58,47,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24]),
-							np.array([20,34,19,5,36,6,30,15,22,20,3,62,57,59,19,56,17,35,2,9,41,10,23,24,41,35,39,60,48,33,34,49,
-						  			54,53,55,23,24,59,7,9,39,51,23,17,2,12,49,6,46,7,61,49,18,41,50,16,40,8,45,55,45,7,24])]
+		expectedresult = [np.array([39,19,16,44,29,13,58,19,13,14,20,44,17,20,25,31,46, 2,29,35,56,17,11,20,39,
+ 									51, 7,30,26,11,17,27,21,11,30,34,46,48,15,53,14,26,12, 7, 5, 8,42,41,37,19,
+ 									16,35,63,20, 3,12,38,26, 8,37,22,23,29]),
+							np.array([1,22,21,42,33, 8,40,58,13,54,19,19,58, 6, 5,10,29,24,34, 1,53,33,30,43,17,
+ 									51,29,38,52,58,55, 9,49,50,24,61, 0,52,51,20,25,58,15,41,53,48, 6,57,10,25,
+ 									11,30,16,20,47, 6, 0,43, 6,18,38, 3,29])]
 		self.assertEqual(len(expectedresult), len(jt65data))
 		for i in range(len(expectedresult)):
 			self.assertEqual(jt65data[i].tolist(), expectedresult[i].tolist())
@@ -31,7 +33,7 @@ class TestText(unittest.TestCase):
 	def test_NoCipher_WithSteg(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "none", "", "", "", False)
@@ -50,7 +52,7 @@ class TestText(unittest.TestCase):
 	def test_XOR(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
@@ -69,7 +71,7 @@ class TestText(unittest.TestCase):
 	def test_ARC4(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
@@ -88,7 +90,7 @@ class TestText(unittest.TestCase):
 	def test_AES_ECB(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
@@ -107,7 +109,7 @@ class TestText(unittest.TestCase):
 	def test_AES_CBC(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44","G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CBC", False)
@@ -126,7 +128,7 @@ class TestText(unittest.TestCase):
 	def test_AES_CFB(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44","G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CFB", False)
@@ -145,7 +147,7 @@ class TestText(unittest.TestCase):
 	def test_OTP(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "OTP", "I LOVE SECURITY AND STUFF", "", "", False)
@@ -167,7 +169,7 @@ class TestWav(unittest.TestCase):
 
 	def test_NoCipher_NoSteg_WAV(self):
 		#Encode
-		jt65msgs = ["G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+		jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 		jt65data = jts.jt65encodemessages(jt65msgs, False)
 		for index,value in enumerate(jt65data):
 			tones = jt65sound.toneswithsync(value)
@@ -187,7 +189,7 @@ class TestWav(unittest.TestCase):
 	def test_NoCipher_WithSteg_WAV(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "none", "", "", "", False)
@@ -213,7 +215,7 @@ class TestWav(unittest.TestCase):
 	def test_XOR_WAV(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
@@ -239,7 +241,7 @@ class TestWav(unittest.TestCase):
 	def test_ARC4_WAV(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
@@ -265,7 +267,7 @@ class TestWav(unittest.TestCase):
 	def test_AES_ECB_WAV(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
@@ -291,7 +293,7 @@ class TestWav(unittest.TestCase):
 	def test_AES_CBC_WAV(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44","G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CBC", False)
@@ -321,7 +323,7 @@ class TestWav(unittest.TestCase):
 	def test_AES_CFB_WAV(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44","G3LTF DL9KR JO40","G3LTE DL9KR JO40"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CFB", False)
@@ -351,7 +353,7 @@ class TestWav(unittest.TestCase):
 	def test_OTP_WAV(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["CQ KA1BBB FN44","CQ KA1AAA FN44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "OTP", "I LOVE SECURITY AND STUFF", "", "", False)

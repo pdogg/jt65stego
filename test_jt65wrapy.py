@@ -9,10 +9,10 @@ import jt65sound		#Needed to create wav file to test decodewav()
 class TestWrapperFunctions(unittest.TestCase):
 
 	def test_Encode(self):
-		msg1 = "G3LTF DL9KR JO40"
-		msg2 = "G3LTE DL9KR JO40"
-		expectedresult1 = np.array([61,37,30,28,9,27,61,58,26,3,49,16])
-		expectedresult2 = np.array([61,37,30,28,5,27,61,58,26,3,49,16])
+		msg1 = "KB2BBC KA1AAB DD44"
+		msg2 = "KA1AAB KB2BBC DD44"
+		expectedresult1 = np.array([34, 20, 5, 42, 26, 9, 3, 5, 60, 6, 24, 22])
+		expectedresult2 = np.array([34, 16, 49, 31, 2, 9, 16, 22, 41, 38, 24, 22])
 		result1 = jt.encode(msg1)
 		result2 = jt.encode(msg2)
 		self.assertEqual(len(result1), len(expectedresult1))
@@ -21,10 +21,10 @@ class TestWrapperFunctions(unittest.TestCase):
 		self.assertEqual(result2.tolist(), expectedresult2.tolist())
 
 	def test_Decode(self):
-		msg1 = np.array([61,37,30,28,9,27,61,58,26,3,49,16])
-		msg2 = np.array([61,37,30,28,5,27,61,58,26,3,49,16])
-		expectedresult1 = "G3LTF DL9KR JO40"
-		expectedresult2 = "G3LTE DL9KR JO40"
+		msg1 = np.array([34, 20, 5, 42, 26, 9, 3, 5, 60, 6, 24, 22])
+		msg2 = np.array([34, 16, 49, 31, 2, 9, 16, 22, 41, 38, 24, 22])
+		expectedresult1 = "KB2BBC KA1AAB DD44"
+		expectedresult2 = "KA1AAB KB2BBC DD44"
 		result1 = jt.decode(msg1).rstrip()
 		result2 = jt.decode(msg2).rstrip()
 		self.assertEqual(len(result1), len(expectedresult1))
@@ -33,12 +33,14 @@ class TestWrapperFunctions(unittest.TestCase):
 		self.assertEqual(result2, expectedresult2)
 
 	def test_PrepMsg(self):
-		msg1 = np.array([61,37,30,28,9,27,61,58,26,3,49,16])
-		msg2 = np.array([61,37,30,28,5,27,61,58,26,3,49,16])
-		expectedresult1 = np.array([14,16,9,18,4,60,41,18,22,63,43,5,30,13,15,9,25,35,50,21,0,36,17,42,33,35,39,22,25,39,46,3, 
-						  			47,39,55,23,61,25,58,47,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24])
-		expectedresult2 = np.array([20,34,19,5,36,6,30,15,22,20,3,62,57,59,19,56,17,35,2,9,41,10,23,24,41,35,39,60,48,33,34,49,
-						  			54,53,55,23,24,59,7,9,39,51,23,17,2,12,49,6,46,7,61,49,18,41,50,16,40,8,45,55,45,7,24])
+		msg1 = np.array([34, 20, 5, 42, 26, 9, 3, 5, 60, 6, 24, 22])
+		msg2 = np.array([34, 16, 49, 31, 2, 9, 16, 22, 41, 38, 24, 22])
+		expectedresult1 = np.array([39,19,16,44,29,13,58,19,13,14,20,44,17,20,25,31,46, 2,29,35,56,17,11,20,39,
+ 									51, 7,30,26,11,17,27,21,11,30,34,46,48,15,53,14,26,12, 7, 5, 8,42,41,37,19,
+ 									16,35,63,20, 3,12,38,26, 8,37,22,23,29])
+		expectedresult2 = np.array([1,22,21,42,33, 8,40,58,13,54,19,19,58, 6, 5,10,29,24,34, 1,53,33,30,43,17,
+ 									51,29,38,52,58,55, 9,49,50,24,61, 0,52,51,20,25,58,15,41,53,48, 6,57,10,25,
+ 									11,30,16,20,47, 6, 0,43, 6,18,38, 3,29])
 		result1 = jt.prepmsg(msg1)
 		result2 = jt.prepmsg(msg2)
 		self.assertEqual(len(result1), len(expectedresult1))
@@ -47,12 +49,14 @@ class TestWrapperFunctions(unittest.TestCase):
 		self.assertEqual(result2.tolist(), expectedresult2.tolist())
 
 	def test_UnprepMsg(self):
-		msg1 = np.array([14,16,9,18,4,60,41,18,22,63,43,5,30,13,15,9,25,35,50,21,0,36,17,42,33,35,39,22,25,39,46,3, 
-						  			47,39,55,23,61,25,58,47,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24])
-		msg2 = np.array([20,34,19,5,36,6,30,15,22,20,3,62,57,59,19,56,17,35,2,9,41,10,23,24,41,35,39,60,48,33,34,49,
-						  			54,53,55,23,24,59,7,9,39,51,23,17,2,12,49,6,46,7,61,49,18,41,50,16,40,8,45,55,45,7,24])
-		expectedresult1 = np.array([61,37,30,28,9,27,61,58,26,3,49,16])
-		expectedresult2 = np.array([61,37,30,28,5,27,61,58,26,3,49,16])
+		msg1 = np.array([39,19,16,44,29,13,58,19,13,14,20,44,17,20,25,31,46, 2,29,35,56,17,11,20,39,
+ 									51, 7,30,26,11,17,27,21,11,30,34,46,48,15,53,14,26,12, 7, 5, 8,42,41,37,19,
+ 									16,35,63,20, 3,12,38,26, 8,37,22,23,29])
+		msg2 = np.array([1,22,21,42,33, 8,40,58,13,54,19,19,58, 6, 5,10,29,24,34, 1,53,33,30,43,17,
+ 									51,29,38,52,58,55, 9,49,50,24,61, 0,52,51,20,25,58,15,41,53,48, 6,57,10,25,
+ 									11,30,16,20,47, 6, 0,43, 6,18,38, 3,29])
+		expectedresult1 = np.array([34, 20, 5, 42, 26, 9, 3, 5, 60, 6, 24, 22])
+		expectedresult2 = np.array([34, 16, 49, 31, 2, 9, 16, 22, 41, 38, 24, 22])
 		result1 = jt.unprepmsg(msg1)
 		result2 = jt.unprepmsg(msg2)
 		self.assertEqual(len(result1), len(expectedresult1))
@@ -85,9 +89,10 @@ class TestWrapperFunctions(unittest.TestCase):
 		self.assertEqual(result2.tolist(), expectedresult2.tolist())
 
 	def test_DecodeWav(self):
-		expectedresult = "G3LTF DL9KR JO40"
-		msg = np.array([14,16,9,18,4,60,41,18,22,63,43,5,30,13,15,9,25,35,50,21,0,36,17,42,33,35,39,22,25,39,46,3, 
-						47,39,55,23,61,25,58,47,16,38,39,17,2,36,4,56,5,16,15,55,18,41,7,26,51,17,18,49,10,13,24])
+		expectedresult = "KB2BBC KA1AAB DD44"
+		msg = np.array([39,19,16,44,29,13,58,19,13,14,20,44,17,20,25,31,46, 2,29,35,56,17,11,20,39,
+ 									51, 7,30,26,11,17,27,21,11,30,34,46,48,15,53,14,26,12, 7, 5, 8,42,41,37,19,
+ 									16,35,63,20, 3,12,38,26, 8,37,22,23,29])
 		tones = jt65sound.toneswithsync(msg)
 		jt65sound.outputwavfile("test_output.wav", tones)
 		symbols, confidence, jt65result, s2db, freq, a1, a2 = jt.decodewav("test_output.wav")
