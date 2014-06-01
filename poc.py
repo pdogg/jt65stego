@@ -6,7 +6,7 @@ import jt65stego as jts
 
 key = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
 
-legitmsg = "CQ KA1AAA FN42"
+legitmsg = "CQ KA1AAB DD44"
 secretmsg = "MASSHACKERS"
 
 legitjt = jt.encode(legitmsg)
