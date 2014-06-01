@@ -7,6 +7,12 @@
 import sys
 import argparse
 import copy
+import time
+import datetime
+import subprocess
+import os
+import time
+import thread
 import numpy as np
 import jt65stego as jts
 import jt65sound
@@ -86,6 +92,27 @@ def processinput(stdin, wavin, verbose):
 
 	return JT65data
 
+def performwavdecode(filename):
+	symbols, confidence, msg, s2db, freq, a1, a2 = jt65sound.inputwavfile(filename, verbose=args.verbose)
+	numpymsg = np.array(symbols)
+	jt65data = []
+	jt65data.append(numpymsg)
+	jt65datacopy = copy.deepcopy(jt65data)	#Necessary on some version of Python due to 'unprepmsg' not preserving list
+
+	#Retrieve JT65 valid messages
+	jt65msgs = jts.decodemessages(jt65data, args.verbose)
+
+	#Retrieve steg message
+	stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
+
+	#Decipher steg message
+	stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
+
+	#Print result
+	for index,value in enumerate(jt65msgs):
+		print "\nDecoded JT65 message " + str(index) + " : " + value 
+	print "\nHidden message : " + stegmsg
+
 # Command line argument setup
 parser = argparse.ArgumentParser(description='Steganography tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
 groupCommands = parser.add_argument_group("Commands")
@@ -159,3 +186,21 @@ elif args.decode:
 	for index,value in enumerate(jt65msgs):
 		print "\nDecoded JT65 message " + str(index) + " : " + value 
 	print "\nHidden message : " + stegmsg
+
+# Interactive - Just listening for now
+elif args.interactive:
+
+	while True:
+		#Wait for start of minute
+		print "Waiting for start of minute..."
+		while datetime.datetime.now().second != 0:
+			time.sleep(0.1)
+
+		filename = time.strftime("%Y%m%d-%H%M.wav")
+
+		print "Monitoring..."
+		with open(os.devnull, "w") as fnull:
+			subprocess.call(["./jt65recorder.py", filename], stdout=fnull, stderr=fnull)
+
+		print "Decoding..."
+		thread.start_new_thread(performwavdecode, (filename,))	#Start in new thread so slower machines won't miss next msg
