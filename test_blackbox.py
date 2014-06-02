@@ -1,12 +1,12 @@
 import unittest
 import random
 import os
+import string
 
 import numpy as np
 import jt65stego as jts
 import jt65sound
 
-hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
 MAX_COVER_NOISE = 5
 
 class TestText(unittest.TestCase):
@@ -36,6 +36,8 @@ class TestText(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "none", "", "", "", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 
@@ -55,6 +57,8 @@ class TestText(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 
@@ -74,6 +78,8 @@ class TestText(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 
@@ -93,6 +99,8 @@ class TestText(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 
@@ -112,6 +120,8 @@ class TestText(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CBC", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 
@@ -131,6 +141,8 @@ class TestText(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CFB", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 
@@ -150,6 +162,8 @@ class TestText(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "OTP", "I LOVE SECURITY AND STUFF", "", "", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 
@@ -196,6 +210,8 @@ class TestWav(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "none", "", "", "", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 			for index,value in enumerate(finalmsgs):
@@ -226,6 +242,8 @@ class TestWav(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 			for index,value in enumerate(finalmsgs):
@@ -256,6 +274,8 @@ class TestWav(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 			for index,value in enumerate(finalmsgs):
@@ -286,6 +306,8 @@ class TestWav(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 			for index,value in enumerate(finalmsgs):
@@ -316,6 +338,8 @@ class TestWav(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CBC", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 			for index,value in enumerate(finalmsgs):
@@ -354,6 +378,8 @@ class TestWav(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CFB", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 			for index,value in enumerate(finalmsgs):
@@ -392,6 +418,8 @@ class TestWav(unittest.TestCase):
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "OTP", "I LOVE SECURITY AND STUFF", "", "", False)
 			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
 			for index,value in enumerate(finalmsgs):

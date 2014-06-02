@@ -13,11 +13,14 @@ import subprocess
 import os
 import time
 import thread
+import colorama
 import numpy as np
 import jt65stego as jts
 import jt65sound
 
-hidekey = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
+STEG_ENABLED = True
+STEG_DETECTION_ERROR_THRESHOLD = 17
+hidekey = []
 
 def ValidateArguments(args):
 	if args.encode and args.decode:
@@ -96,6 +99,7 @@ def processinput(stdin, wavin, verbose):
 	return JT65data
 
 def performwavdecode(filename):
+	containssteg = False
 	messages = jt65sound.inputwavfile(filename, verbose=args.verbose)
 
 	for currentmsg in messages:
@@ -108,16 +112,22 @@ def performwavdecode(filename):
 		#Retrieve JT65 valid messages
 		jt65msgs = jts.decodemessages(jt65data, args.verbose)
 
-		#Retrieve steg message
-		stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
+		if STEG_ENABLED:
+			containssteg = jts.validatesteg(jt65msgs[0], symbols, hidekey, STEG_DETECTION_ERROR_THRESHOLD, args.verbose)
 
-		#Decipher steg message
-		stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
+		if containssteg:
+			#Retrieve steg message
+			stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
+
+			#Decipher steg message
+			stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
 
 		#Print result
 		for index,value in enumerate(jt65msgs):
-			print "\nDecoded JT65 message " + str(index) + " : " + value 
-		print "\nHidden message : " + stegmsg
+			print "\nDecoded JT65 message " + str(index) + " : " + colorama.Fore.BLUE + value + colorama.Fore.RESET
+
+		if containssteg:
+			print "\nHidden message : " + colorama.Fore.RED + stegmsg + colorama.Fore.RESET
 
 # Command line argument setup
 parser = argparse.ArgumentParser(description='Steganography tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
@@ -135,7 +145,7 @@ groupOptions.add_argument('--jt65msg', metavar='<message1(,message2)(,message3).
 groupOptions.add_argument('--stegmsg', metavar='<message>', help='Message to hide in result (batch mode)')
 groupOptions.add_argument('--verbose', action='store_true', help='Verbose output')
 groupEncryption.add_argument('--cipher', default='none', metavar='<type>', choices=['none', 'XOR', 'ARC4', 'AES', 'GPG', 'OTP'], help='Supported ciphers are none, XOR, ARC4, AES, GPG, OTP (default: none)')
-groupEncryption.add_argument('--key', metavar='<key>', help='Cipher key (batch mode)')
+groupEncryption.add_argument('--key', metavar='<key>', help='Cipher/steg symbol key (batch mode)')
 groupEncryption.add_argument('--recipient', metavar='<user>', help='Recipient for GPG mode')
 groupEncryption.add_argument('--aesmode', default='ECB', metavar='<mode>', choices=['ECB', 'CBC', 'CFB'], help='Supported modes are ECB, CBC, CFB (default: ECB)')
 groupEncodeOutput.add_argument('--stdout', action='store_true', help='Output to terminal (default)')
@@ -145,9 +155,17 @@ groupDecodeInput.add_argument('--stdin', action='store_true', help='Input from s
 groupDecodeInput.add_argument('--wavin', metavar='<file1.wav(,file2.wav)(,file3.wav)...>', help='Input from wav file(s)')
 args = parser.parse_args()
 
+colorama.init()
+
 # Check arguments to make sure we have everything we need and there are no contradictory commands
 ValidateArguments(args)
 SetArgumentDefaults(args)
+
+if not args.key:
+	print colorama.Fore.RED + "No steg symbol key provided, steganography mode disabled" + colorama.Fore.RESET
+	STEG_ENABLED = False
+else:
+	hidekey = jts.getnoisekey(args.key)
 
 # Batch encode
 if args.batch and args.encode:
@@ -157,7 +175,7 @@ if args.batch and args.encode:
 	#Create array of valid JT65 data
 	jt65data = jts.jt65encodemessages(jt65msgs, args.verbose)
 
-	if args.stegmsg != "":
+	if args.stegmsg != "" and STEG_ENABLED:
 		#Create array of cipher data to hide
 		cipherdata = jts.createciphermsgs(len(jt65data), args.stegmsg, args.cipher, args.key, args.recipient, args.aesmode, args.verbose)
 
@@ -175,23 +193,32 @@ if args.batch and args.encode:
 
 # Decode
 elif args.decode:
+	stegpresent = False
+
 	#Process input to JT numpy arrays
 	jt65data = processinput(args.stdin, args.wavin, args.verbose)
-	jt65datacopy = copy.deepcopy(jt65data)	#Necessary on some version of Python due to 'unprepmsg' not preserving list
+	jt65stegmsgs = []
 
 	#Retrieve JT65 valid messages
 	jt65msgs = jts.decodemessages(jt65data, args.verbose)
 
+	if STEG_ENABLED:
+		for i in range(len(jt65data)):
+			if jts.validatesteg(jt65msgs[i], jt65data[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, args.verbose):
+				jt65stegmsgs.append(jt65data[i])
+				stegpresent = True
+
 	#Retrieve steg message
-	stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
+	stegdata = jts.retrievesteg(jt65stegmsgs, hidekey, args.verbose)
 
 	#Decipher steg message
 	stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
 
 	#Print result
 	for index,value in enumerate(jt65msgs):
-		print "\nDecoded JT65 message " + str(index) + " : " + value 
-	print "\nHidden message : " + stegmsg
+		print "\nDecoded JT65 message " + str(index) + " : " + colorama.Fore.BLUE + value + colorama.Fore.RESET
+	if stegpresent:
+		print "\nHidden message : " + colorama.Fore.RED + stegmsg + colorama.Fore.RESET
 
 # Interactive - Just listening for now
 elif args.interactive:

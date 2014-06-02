@@ -54,7 +54,7 @@ def randomcover(message, key, howmuch=10, verbose=False) :
 		noisecount += 1
 	return message
 
-def getnoisekey(password, length=12) :
+def getnoisekey(password, length=20) :
 #I AM NOT A CRYPTOGRAPHER I HAVE NO IDEA IF THIS IS SAFE
 #THIS FEATURE LEAKS BITS OF THE sha512 HASH OF THE PASSWORD!!!
 #returns a "noisekey" given a password
@@ -375,6 +375,24 @@ def steginject(jt65data, noise, cipherdata, hidekey, verbose=False):
 		finalpackets.append(stegedpacket)
 
 	return finalpackets
+
+def validatesteg(jt65msg, rxsymbols, hidekey, errordetectionthreshold, verbose=False):
+#Determines if a given set of symbols contain steganography or are a normal JT65 message
+
+	errorcount = 0
+
+	#Determine what the symbols would be if there were no errors
+	truesymbols = jt.prepmsg(jt.encode(jt65msg))
+
+	#Determine how many symbols where steg should be hidden contain errors
+	for i in hidekey:
+		if rxsymbols[i] != truesymbols[i]:
+			errorcount += 1
+
+	if errorcount >= errordetectionthreshold:
+		return True
+
+	return False
 
 def retrievesteg(jt65data, hidekey, verbose=False):
 #Retrieve steganography data from array of JT65 data

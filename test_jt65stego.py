@@ -40,7 +40,7 @@ class TestStegFunctions(unittest.TestCase):
 
 	def test_GetNoiseKey(self):
 		result = jts.getnoisekey("Give me a noise key!")
-		expectedresult = np.array([49,45,55,15,27,33,58,14,23,35,48,44])
+		expectedresult = np.array([49,45,55,27,33,58,23,35,48,44,43, 7,37,32,57, 9,29,62,10,41])
 		self.assertEqual(len(result), len(expectedresult))
 		for i in range(len(result)):
 			self.assertTrue(result[i], expectedresult.tolist()[i])
