@@ -28,9 +28,9 @@ program jt65
 !  nfb=4000
   nfqso=933
   nagain=0
-
-  open(12,file='timer.out',status='unknown')
-  open(22,file='kvasd.dat',access='direct',recl=1024,status='unknown')
+! pdogg - No need to open these we won't be using them
+!  open(12,file='timer.out',status='unknown')
+!  open(22,file='kvasd.dat',access='direct',recl=1024,status='unknown')
 
   call timer('jt65    ',0)
 
