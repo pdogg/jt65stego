@@ -63,7 +63,7 @@ subroutine jt65a(dd,npts,newdat,nutc,nf1,nf2,nfqso,ntol,nagain,ndecoded)
         if(decoded.ne.'                      ') then
 !           print *, decoded 
           print *, decoded, ",", sync2, ",",  freq, ",",  a(1), ",",  a(2) !pdogg
-          ndecoded=1
+!          ndecoded=1      <--- makes Pi segfault.. :)
 ! pdogg - this commented stuffstuff crashes debian... skipping it for now <<XXX>> fix
 !            nfreq=nint(freq+a(1))
 !           ndrift=nint(2.0*a(2))
