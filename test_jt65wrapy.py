@@ -95,8 +95,10 @@ class TestWrapperFunctions(unittest.TestCase):
  									16,35,63,20, 3,12,38,26, 8,37,22,23,29])
 		tones = jt65sound.toneswithsync(msg)
 		jt65sound.outputwavfile("test_output.wav", tones)
-		symbols, confidence, jt65result, s2db, freq, a1, a2 = jt.decodewav("test_output.wav")
+		result = jt.decodewav("test_output.wav")
+		symbols, confidence, jt65result, s2db, freq, a1, a2 = result[0]
 		os.remove("test_output.wav")	#Cleanup!
+		self.assertEqual(len(result), 1)
 		self.assertEqual(symbols, msg.tolist())
 		self.assertEqual(confidence, [255] * 63)	#63 symbols with 100% confidence
 		self.assertEqual(jt65result, expectedresult)

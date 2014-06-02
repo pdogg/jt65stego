@@ -55,19 +55,27 @@ def decodewav(wavfile):
 #Returns symbol list, confidence, and decoded msg string from JT65 wav file
 #Calls the jt65 binary through subprocess (created from jt65.f90)
 #Possibly in the future interface directly with the fortran via f2py
+	messages = []
 	symbols = []
 	confidence = []
 	jt65msg = ""
 
 	with open("decodetemp.txt", "w+") as f:
-		#subprocess.call(["/home/ph/Projects/defcon22/jt65stego/jt65", wavfile], stdout=f)
 		subprocess.call(["./jt65", wavfile], stdout=f)
-		f.seek(0)		# Reset to start reading from beginning of file
-		symbols = map(int, f.readline().replace("  ", " ").replace("\n", "").strip().split(" "))
-		confidence = map(int, f.readline().replace("  ", " ").replace("\n", "").strip().split(" "))
-		msgandstats = f.readline().replace("\n", "").split(",")
-		jt65msg, s2db, freq, a1, a2 = msgandstats
+
+		f.seek(0)	# Reset to start reading from beginning of file
+		linecount = sum(1 for _ in f)	# Get linecount
+
+		f.seek(0)	# Reset to start reading from beginning of file
+
+		while linecount >= 3:		
+			symbols = map(int, f.readline().strip().replace("  ", " ").replace("   ", " ").replace("\n", "").strip().split(" "))
+			confidence = map(int, f.readline().strip().replace("   ", " ").replace("  ", " ").replace("\n", "").strip().split(" "))
+			msgandstats = f.readline().strip().replace("\n", "").split(",")
+			jt65msg, s2db, freq, a1, a2 = msgandstats
+			messages.append([symbols, confidence, jt65msg.strip(), s2db.strip(), freq.strip(), a1.strip(), a2.strip()])
+			linecount = linecount - 3
 
 	os.remove("decodetemp.txt")
 
-	return symbols, confidence, jt65msg.strip(), s2db.strip(), freq.strip(), a1.strip(), a2.strip()
+	return messages

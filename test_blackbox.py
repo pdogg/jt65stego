@@ -176,12 +176,16 @@ class TestWav(unittest.TestCase):
 			jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 		#Decode
-		symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
-		symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
+		result1 = jt65sound.inputwavfile("test_output-000.wav")
+		result2 = jt65sound.inputwavfile("test_output-001.wav")
+		symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = result1[0]
+		symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
 		os.remove("test_output-000.wav")
 		os.remove("test_output-001.wav")
 		resultjt65data = [symbols1, symbols2]
 		decodedjt65msgs = jts.decodemessages(resultjt65data, False)
+		self.assertEqual(len(result1), 1)
+		self.assertEqual(len(result2), 1)
 		self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 		for i in range(len(jt65msgs)):
 			self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -199,14 +203,18 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
+			result1 = jt65sound.inputwavfile("test_output-000.wav")
+			result2 = jt65sound.inputwavfile("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = result1[0]
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
 			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "none", "", "", False)
 			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(result1), 1)
+			self.assertEqual(len(result2), 1)
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -225,14 +233,18 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
+			result1 = jt65sound.inputwavfile("test_output-000.wav")
+			result2 = jt65sound.inputwavfile("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = result1[0]
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
 			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "XOR", "XOR rox and all that jazz", "", False)
 			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(result1), 1)
+			self.assertEqual(len(result2), 1)
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -251,14 +263,18 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
+			result1 = jt65sound.inputwavfile("test_output-000.wav")
+			result2 = jt65sound.inputwavfile("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = result1[0]
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
 			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "ARC4", "RC4 is the most secure algorithm in the world", "", False)
 			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(result1), 1)
+			self.assertEqual(len(result2), 1)
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -277,14 +293,18 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
+			result1 = jt65sound.inputwavfile("test_output-000.wav")
+			result2 = jt65sound.inputwavfile("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = result1[0]
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
 			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "ECB", False)
 			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(result1), 1)
+			self.assertEqual(len(result2), 1)
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -303,10 +323,14 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
-			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-002.wav")
-			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-003.wav")
+			result1 = jt65sound.inputwavfile("test_output-000.wav")
+			result2 = jt65sound.inputwavfile("test_output-001.wav")
+			result3 = jt65sound.inputwavfile("test_output-002.wav")
+			result4 = jt65sound.inputwavfile("test_output-003.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = result1[0]
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
+			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = result3[0]
+			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = result4[0]
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			os.remove("test_output-002.wav")
@@ -315,6 +339,10 @@ class TestWav(unittest.TestCase):
 			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "CBC", False)
 			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(result1), 1)
+			self.assertEqual(len(result2), 1)
+			self.assertEqual(len(result3), 1)
+			self.assertEqual(len(result4), 1)
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -333,10 +361,14 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
-			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-002.wav")
-			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-003.wav")
+			result1 = jt65sound.inputwavfile("test_output-000.wav")
+			result2 = jt65sound.inputwavfile("test_output-001.wav")
+			result3 = jt65sound.inputwavfile("test_output-002.wav")
+			result4 = jt65sound.inputwavfile("test_output-003.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = result1[0]
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
+			symbols3, confidence3, wavmsg3, s2db, freq, a1, a2 = result3[0]
+			symbols4, confidence4, wavmsg4, s2db, freq, a1, a2 = result4[0]
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			os.remove("test_output-002.wav")
@@ -345,6 +377,10 @@ class TestWav(unittest.TestCase):
 			stegdata = jts.retrievesteg(finalresultmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "CFB", False)
 			decodedjt65msgs = jts.decodemessages(finalresultmsgs, False)
+			self.assertEqual(len(result1), 1)
+			self.assertEqual(len(result2), 1)
+			self.assertEqual(len(result3), 1)
+			self.assertEqual(len(result4), 1)
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -363,14 +399,18 @@ class TestWav(unittest.TestCase):
 				jt65sound.outputwavfile("test_output-00" + str(index) + ".wav", tones)
 
 			#Decode
-			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-000.wav")
-			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = jt65sound.inputwavfile("test_output-001.wav")
+			result1 = jt65sound.inputwavfile("test_output-000.wav")
+			result2 = jt65sound.inputwavfile("test_output-001.wav")
+			symbols1, confidence1, wavmsg1, s2db, freq, a1, a2 = result1[0]
+			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
 			finalresultmsgs = [symbols1, symbols2]
 			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "OTP", "I LOVE SECURITY AND STUFF", "", False)
 			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(result1), 1)
+			self.assertEqual(len(result2), 1)
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())

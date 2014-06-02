@@ -107,16 +107,19 @@ def outputwavfile(filename, tones, mode=1):
   return filename
 
 def inputwavfile(filename, verbose=False):
-  symbols, confidence, jt65msg, s2db, freq, a1, a2 = jt.decodewav(filename)
+  messages = jt.decodewav(filename)
 
   if verbose:
-    print "Decoded file : " + filename
-    print "Symbols : " + str(symbols)
-    print "Confidence : " + str(confidence)
-    print "JT65 Msg : " + jt65msg
-    print "S2DB : " + s2db
-    print "Freq : " + freq
-    print "a1 : " + a1
-    print "a2 : " + a2
+    for currentmsg in messages:
+      symbols, confidence, jt65msg, s2db, freq, a1, a2 = currentmsg
 
-  return symbols, confidence, jt65msg, s2db, freq, a1, a2
+      print "Decoded file : " + filename
+      print "Symbols : " + str(symbols)
+      print "Confidence : " + str(confidence)
+      print "JT65 Msg : " + jt65msg
+      print "S2DB : " + s2db
+      print "Freq : " + freq
+      print "a1 : " + a1
+      print "a2 : " + a2
+
+  return messages

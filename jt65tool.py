@@ -86,32 +86,38 @@ def processinput(stdin, wavin, verbose):
 		wavfiles = wavin.split(",")
 
 		for index,value in enumerate(wavfiles):
-			symbols, confidence, msg, s2db, freq, a1, a2 = jt65sound.inputwavfile(value, verbose)
-			numpymsg = np.array(symbols)
-			JT65data.append(numpymsg)
+			messages = jt65sound.inputwavfile(value, verbose)
+
+			for currentmsg in messages:
+				symbols, confidence, msg, s2db, freq, a1, a2 = currentmsg
+				numpymsg = np.array(symbols)
+				JT65data.append(numpymsg)
 
 	return JT65data
 
 def performwavdecode(filename):
-	symbols, confidence, msg, s2db, freq, a1, a2 = jt65sound.inputwavfile(filename, verbose=args.verbose)
-	numpymsg = np.array(symbols)
-	jt65data = []
-	jt65data.append(numpymsg)
-	jt65datacopy = copy.deepcopy(jt65data)	#Necessary on some version of Python due to 'unprepmsg' not preserving list
+	messages = jt65sound.inputwavfile(filename, verbose=args.verbose)
 
-	#Retrieve JT65 valid messages
-	jt65msgs = jts.decodemessages(jt65data, args.verbose)
+	for currentmsg in messages:
+		symbols, confidence, msg, s2db, freq, a1, a2 = currentmsg
+		numpymsg = np.array(symbols)
+		jt65data = []
+		jt65data.append(numpymsg)
+		jt65datacopy = copy.deepcopy(jt65data)	#Necessary on some version of Python due to 'unprepmsg' not preserving list
 
-	#Retrieve steg message
-	stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
+		#Retrieve JT65 valid messages
+		jt65msgs = jts.decodemessages(jt65data, args.verbose)
 
-	#Decipher steg message
-	stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
+		#Retrieve steg message
+		stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
 
-	#Print result
-	for index,value in enumerate(jt65msgs):
-		print "\nDecoded JT65 message " + str(index) + " : " + value 
-	print "\nHidden message : " + stegmsg
+		#Decipher steg message
+		stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
+
+		#Print result
+		for index,value in enumerate(jt65msgs):
+			print "\nDecoded JT65 message " + str(index) + " : " + value 
+		print "\nHidden message : " + stegmsg
 
 # Command line argument setup
 parser = argparse.ArgumentParser(description='Steganography tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
