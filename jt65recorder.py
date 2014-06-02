@@ -48,10 +48,14 @@ class JT65RecordingFile(object):
 #                                input=True,
 #                                frames_per_buffer=self.frames_per_buffer)
     self._stream.start_stream()
+   
+    audio = "" 
     for _ in range(int(self.rate / self.frames_per_buffer * duration)):
-      audio = self._stream.read(self.frames_per_buffer)
-      self.wavefile.writeframes(audio)
+#      print "inloop " + str(len(audio)) +"\n"
+      audio += self._stream.read(self.frames_per_buffer)
+#      self.wavefile.writeframes(audio)
     self._stream.stop_stream()
+    self.wavefile.writeframes(audio)
     return None
 
   def start_recording(self):
@@ -80,7 +84,7 @@ class JT65RecordingFile(object):
  
   def close(self):
     packed_zeros = struct.pack('h',int(0)) 
-    values = []
+    values = [] 
 
     self._stream.close()
     self._pa.terminate()
