@@ -197,15 +197,16 @@ elif args.decode:
 
 	#Process input to JT numpy arrays
 	jt65data = processinput(args.stdin, args.wavin, args.verbose)
+	jt65datacopy = copy.deepcopy(jt65data)
 	jt65stegmsgs = []
 
 	#Retrieve JT65 valid messages
 	jt65msgs = jts.decodemessages(jt65data, args.verbose)
 
 	if STEG_ENABLED:
-		for i in range(len(jt65data)):
-			if jts.validatesteg(jt65msgs[i], jt65data[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, args.verbose):
-				jt65stegmsgs.append(jt65data[i])
+		for i in range(len(jt65datacopy)):
+			if jts.validatesteg(jt65msgs[i], jt65datacopy[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, args.verbose):
+				jt65stegmsgs.append(jt65datacopy[i])
 				stegpresent = True
 
 	#Retrieve steg message
