@@ -1,6 +1,11 @@
 *.py[cod]
 
+# jt65stego project specifics
 *.o
+jt65
+lib/jt65
+lib/libjt9.a
+*.wav
 
 # C extensions
 *.so

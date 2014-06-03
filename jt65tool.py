@@ -230,7 +230,7 @@ elif args.interactive:
 		while datetime.datetime.now().second != 0:
 			time.sleep(0.1)
 
-		filename = time.strftime("%Y%m%d-%H%M.wav")
+		filename = time.strftime("logs/%Y%m%d-%H%M.wav")
 
 		print "Monitoring..."
 		with open(os.devnull, "w") as fnull:
