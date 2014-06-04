@@ -352,17 +352,14 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 			stegmsg += " "
 
 		gpg = GPG()
-		with open("stegtemp.txt", "w+") as f:
-			f.write(stegmsg)
-			f.seek(0)
-			cipherdata = gpg.encrypt_file(f, recipient)
+		stegstream = io.StringIO(unicode(stegmsg))
+		cipherdata = gpg.encrypt_file(stegstream, recipient)
 
 		if cipherdata == "":
 			print "You must set the recipient's trust level to -something- in your keyring before we can encrypt the message"
 			sys.exit(0)
 
 		cipherlist = list(bytearray(str(cipherdata)))
-		os.remove("stegtemp.txt")
 
 		if verbose: 			
 			print "Cipher list: " + str(cipherlist)
