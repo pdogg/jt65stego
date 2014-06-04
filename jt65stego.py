@@ -6,9 +6,12 @@ from Crypto.Cipher import AES
 from Crypto.Cipher import ARC4
 from Crypto.Cipher import XOR
 from Crypto.Hash import SHA
+from gnupg import GPG
 import hashlib
 import binascii
 import struct
+import io
+import os
 
 def jtsteg(prepedmsg,secretmsg,key) :
 #simple stego routine to enbed a secret message into a preped jt65 packet according to key
@@ -344,6 +347,40 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 
 			ciphermsgs.append(secretjtfec)
 
+	if cipher == "GPG":
+		while len(stegmsg) % 8:
+			stegmsg += " "
+
+		gpg = GPG()
+		with open("stegtemp.txt", "w+") as f:
+			f.write(stegmsg)
+			f.seek(0)
+			cipherdata = gpg.encrypt_file(f, recipient)
+
+		if cipherdata == "":
+			print "You must set the recipient's trust level to -something- in your keyring before we can encrypt the message"
+			sys.exit(0)
+
+		cipherlist = list(bytearray(str(cipherdata)))
+		os.remove("stegtemp.txt")
+
+		if verbose: 			
+			print "Cipher list: " + str(cipherlist)
+
+		if jt65msgcount * 8 < len(cipherlist):
+			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+			sys.exit(0)
+
+		for index in range(jt65msgcount):
+			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+			secretjtfec = jt.prepsteg(thissteg)
+
+			if verbose:
+				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
+
+			ciphermsgs.append(secretjtfec)
+
 	if cipher == "OTP":
 		#Can we fit your hidden message?
 		if jt65msgcount * 13 < len(stegmsg):
@@ -484,6 +521,19 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 			finalcipherdata = finalcipherdata[16:]
 
 		stegedmsg = cryptobj.decrypt(finalcipherdata)
+
+	if cipher == "GPG":
+		if verbose:
+			print"Cipher Data : " + str(stegedmsgba)
+
+		finalcipherdata = (''.join('{0:02x}'.format(int(e)).decode("hex") for e in stegedmsgba))
+		
+		if verbose:
+			print"Cipher Data Hex : " + finalcipherdata
+
+		gpg = GPG()
+		stegedmsg = gpg.decrypt(finalcipherdata)
+		stegedmsg = str(stegedmsg)
 
 	if cipher == "OTP":
 		stegedmsg = otp_decode(stegedmsg, key)
