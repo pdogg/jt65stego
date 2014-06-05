@@ -1,7 +1,7 @@
 jt65stego
 =========
 
-This tool has been developed by pdoog and thedukezip for the purposes of theoretical study and education on the topic
+This tool has been developed by pdogg and thedukezip for the purposes of theoretical study and education on the topic
 of steganography in the JT65 amateur radio protocol. 
 
 
