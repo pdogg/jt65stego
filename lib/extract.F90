@@ -17,6 +17,7 @@ subroutine extract(s3,nadd,ncount,nhist,decoded,ltext,nbmkv)
 !(a) No amateur station shall transmit:
 !
 !(4) Music using a phone emission except as specifically provided elsewhere in this section; communications intended to facilitate a criminal act; messages encoded for the purpose of obscuring their meaning, except as otherwise provided herein; obscene or indecent words or language; or false or deceptive messages, signals or identification.  real s3(64,63)
+  real s3(64,63)
   character decoded*22
   integer era(51),dat4(12),indx(64)
   integer mrsym(63),mr2sym(63),mrprob(63),mr2prob(63),mrprobsave(63),mrsymsave(63)
