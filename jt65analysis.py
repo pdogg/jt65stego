@@ -10,7 +10,9 @@ import numpy as np
 def eq(a, b) :
 #for map in checkpacket
   return (a == b)
-  
+
+def col(a, i):
+    return [row[i] for row in a]
   
 def checkpacket(packet) :
 #packet is a two dimensional array of symbols and confidence
@@ -40,11 +42,13 @@ def output(diffs, packet) :
 # #diffs, totalconfidence, averageconfidence, mediaconfidence, stddevconfidence, averagedistance, s2db, freq, a1, a2, decode
     conftotal = 0
     diffdist = 0
-    for dif in diffs:
+    if diffs :
+      for dif in diffs:
 	conftotal += dif[3]
         diffdist += abs(dif[1]-dif[2])
-    print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(diffs[:3]))  + ", " + str(np.std(diffs[:3]))+  ", " + str(diffdist/len(diffs))   +  ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + packet[2]
-      
+      print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(col(diffs,3)))  + ", " + str(np.std(col(diffs,3)))+  ", " + str(diffdist/len(diffs))   +  ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + packet[2]
+    else :
+      print "0, 0, 0, 0, 0, 0, " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + packet[2]
 if __name__ == "__main__":
   
   parser = argparse.ArgumentParser(description='Packet Steganalysis tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
@@ -68,7 +72,6 @@ if __name__ == "__main__":
   for packet in packets :
    
    diffs=checkpacket(packet)
-   if diffs :
-     output(diffs,packet)
+   output(diffs,packet)
   
   
