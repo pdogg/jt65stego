@@ -1,28 +1,11 @@
 # basic "steganalysis" of jt65 symbol sets
-# example data:
-#13 43 15 35 30 5 46 10 61 55 26 26 41 55 17 61 25 62 5 15 52 56 40 28 5 33 4 43 0 3 42 32 25 31 48 38 23 23 13 5 52 62 57 48 47 11 21 1 61 4 15 50 41 49 26 28 62 59 4 33 53 53 60
-#255 255 255 255 255 227 255 254 255 255 255 255 255 255 255 255 255 255 228 255 255 255 255 255 227 255 216 255 221 213 255 255 255 255 255 255 255 255 255 221 255 255 255 255 255 255 255 190 255 222 255 255 255 255 255 255 255 255 220 255 255 255 255
-#
-# Where first line is symbols and second line is confidence (prob in wsjtx etc)
-# probability optional
+
 import sys
 import copy
 import argparse
 import jt65stego
 import jt65wrapy
 
-def readfile(filename) :
-# read in a file and return a list containing the values of each line as a list
-# only supports one line in the file!!! FIX FIX!!
-
-  rows = []
-  f = open(filename)
-  lines = f.readlines()
-  for line in lines :
-      row = [int(n) for n in line.split()]
-      rows.append(row)
-  
-  return rows
 
 def eq(a, b) :
 #for map in checkpacket
@@ -46,15 +29,21 @@ def checkpacket(packet) :
   for i in range(0,63) :
     if not symbolmap[i] :
       diffs.append([ i, symbols[i], realmessage[i], confidence[i] ])
-      conftotal += confidence[i]
+      
   if diffs and verbose:    
     print str(len(diffs)) +  "," + str(conftotal / len(diffs))
   
   return diffs
   
   
-
-
+def output(diffs, packet) :
+# formated output for a packet and some diffs
+    conftotal = 0
+    for dif in diffs:
+	conftotal += dif[3]
+        
+    print str(len(diffs)) +  ", " + str(conftotal / len(diffs)) +", " + packet[2]  +  ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6]
+      
 if __name__ == "__main__":
   
   parser = argparse.ArgumentParser(description='Packet Steganalysis tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
@@ -71,10 +60,14 @@ if __name__ == "__main__":
   if args.verbose :
     verbose = True
     print args.file
-  packets = readfile(args.file)
+  packets = jt65wrapy.decodewav(args.file)
   if verbose :
     print packets
-    
-  checkpacket(packets)
+ 
+  for packet in packets :
+   
+   diffs=checkpacket(packet)
+   if diffs :
+     output(diffs,packet)
   
   
