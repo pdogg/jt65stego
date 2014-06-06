@@ -226,177 +226,219 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 	ciphermsgs = []
 
 	if cipher == "none":
-		#Can we fit your hidden message?
-		if jt65msgcount * 13 < len(stegmsg):
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
-
-		for index in range(jt65msgcount):
-			secretjt = jt.encode(stegmsg[index*13:index*13+13])
-			secretjtfec = jt.prepsteg(secretjt)
-
-			if verbose:
-				print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
-				print "Secret message " + str(index) + " encoded : " + str(secretjt)
-				print "Secret message " + str(index) + " encoded with FEC : " + str(secretjtfec)
-
-			ciphermsgs.append(secretjtfec)
+		return createciphermsgs_none(jt65msgcount, stegmsg, verbose)
 
 	if cipher == "XOR":
-		#Can we fit your hidden message?
-		if jt65msgcount * 8 < len(stegmsg):
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
-
-		originallength = len(stegmsg)
-		while len(stegmsg) % 8:
-			stegmsg += chr(random.randint(0, 255))
-
-		cryptobj = XOR.new(key)
-		cipherdata = cryptobj.encrypt(stegmsg)
-		cipherlist = list(bytearray(cipherdata))
-
-		if verbose: 			
-			print "Cipher list: " + str(cipherlist)
-
-		for index in range(len(cipherlist)/8):
-			#Determine how many bytes are in this message
-			if originallength >= 8:
-				thislength = 8
-			else:
-				thislength = originallength % 8
-			originallength -= 8
-
-			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], thislength)
-			secretjtfec = jt.prepsteg(thissteg)
-
-			if verbose:
-				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
-
-			ciphermsgs.append(secretjtfec)
+		return createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose)
 
 	if cipher == "ARC4":
-		#Can we fit your hidden message?
-		if jt65msgcount * 8 < len(stegmsg):
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
-
-		while len(stegmsg) % 8:
-			stegmsg += " "
-
-		tempkey = SHA.new(key).digest()
-		cryptobj = ARC4.new(tempkey)
-		cipherdata = cryptobj.encrypt(stegmsg)
-		cipherlist = list(bytearray(cipherdata))
-
-		if verbose: 			
-			print "Cipher list: " + str(cipherlist)
-
-		for index in range(len(cipherlist)/8):
-			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
-			secretjtfec = jt.prepsteg(thissteg)
-
-			if verbose:
-				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
-
-			ciphermsgs.append(secretjtfec)
+		return createciphermsgs_arc4(jt65msgcount, stegmsg, key, verbose)
 
 	if cipher == "AES":
-		#Check key size
-		if len(key) != 16 and len(key) != 24 and len(key) != 32:
-			print ("\nCipher key must be 16, 24, or 32 bytes... sorry :(\n")
-			sys.exit(0)
-
-		while len(stegmsg) % 16:
-			stegmsg += " "
-
-		#Can we fit your hidden message?
-		if aesmode == "ECB" and jt65msgcount * 8 < len(stegmsg):
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
-		elif (aesmode == "CBC" or aesmode == "CFB") and (jt65msgcount * 8 < len(stegmsg) + 16):
-			#These two modes have an additional 16 byte IV
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
-
-		#Prep the encrypted hidden data
-		iv = ""
-		if aesmode == "ECB":
-			cryptobj = AES.new(key, AES.MODE_ECB)
-		elif aesmode == "CBC":
-			iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
-			cryptobj = AES.new(key, AES.MODE_CBC, iv)
-		elif aesmode == "CFB":
-			iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
-			cryptobj = AES.new(key, AES.MODE_CFB, iv)
-
-		cipherdata = cryptobj.encrypt(stegmsg)
-		cipherlist = list(bytearray(iv)) + list(bytearray(cipherdata))
-
-		if verbose: 			
-			print "Cipher list: " + str(cipherlist)
-
-		for index in range(len(cipherlist)/8):
-			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
-			secretjtfec = jt.prepsteg(thissteg)
-
-			if verbose:
-				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
-
-			ciphermsgs.append(secretjtfec)
+		return createciphermsgs_aes(jt65msgcount, stegmsg, key, aesmode, verbose)
 
 	if cipher == "GPG":
-		while len(stegmsg) % 8:
-			stegmsg += " "
-
-		gpg = GPG()
-		stegstream = io.StringIO(unicode(stegmsg))
-		cipherdata = gpg.encrypt_file(stegstream, recipient)
-
-		if cipherdata == "":
-			print "You must set the recipient's trust level to -something- in your keyring before we can encrypt the message"
-			sys.exit(0)
-
-		cipherlist = list(bytearray(str(cipherdata)))
-
-		if verbose: 			
-			print "Cipher list: " + str(cipherlist)
-
-		if jt65msgcount * 8 < len(cipherlist):
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
-
-		for index in range(len(cipherlist)/8):
-			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
-			secretjtfec = jt.prepsteg(thissteg)
-
-			if verbose:
-				print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-				print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
-
-			ciphermsgs.append(secretjtfec)
+		return createciphermsgs_gpg(jt65msgcount, stegmsg, recipient, verbose)
 
 	if cipher == "OTP":
-		#Can we fit your hidden message?
-		if jt65msgcount * 13 < len(stegmsg):
-			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-			sys.exit(0)
+		return createciphermsgs_otp(jt65msgcount, stegmsg, key, verbose)
 
-		stegmsg = otp_encode(stegmsg, key)
+	return None
 
-		for index in range(jt65msgcount):
-			secretjt = jt.encode(stegmsg[index*13:index*13+13])
-			secretjtfec = jt.prepsteg(secretjt)
+def createciphermsgs_none(jt65msgcount, stegmsg, verbose=False):
+	ciphermsgs = []
 
-			if verbose:
-				print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
-				print "Secret message " + str(index) + " encoded : " + str(secretjt)
-				print "Secret message " + str(index) + " encoded with FEC : " + str(secretjt)
+	#Can we fit your hidden message?
+	if jt65msgcount * 13 < len(stegmsg):
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
 
-			ciphermsgs.append(secretjtfec)
+	for index in range(jt65msgcount):
+		secretjt = jt.encode(stegmsg[index*13:index*13+13])
+		secretjtfec = jt.prepsteg(secretjt)
+
+		if verbose:
+			print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
+			print "Secret message " + str(index) + " encoded : " + str(secretjt)
+			print "Secret message " + str(index) + " encoded with FEC : " + str(secretjtfec)
+
+		ciphermsgs.append(secretjtfec)
+
+	return ciphermsgs
+
+def createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose=False):
+	ciphermsgs = []
+
+	#Can we fit your hidden message?
+	if jt65msgcount * 8 < len(stegmsg):
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
+
+	originallength = len(stegmsg)
+	while len(stegmsg) % 8:
+		stegmsg += chr(random.randint(0, 255))
+
+	cryptobj = XOR.new(key)
+	cipherdata = cryptobj.encrypt(stegmsg)
+	cipherlist = list(bytearray(cipherdata))
+
+	if verbose: 			
+		print "Cipher list: " + str(cipherlist)
+
+	for index in range(len(cipherlist)/8):
+		#Determine how many bytes are in this message
+		if originallength >= 8:
+			thislength = 8
+		else:
+			thislength = originallength % 8
+		originallength -= 8
+
+		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], thislength)
+		secretjtfec = jt.prepsteg(thissteg)
+
+		if verbose:
+			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
+
+		ciphermsgs.append(secretjtfec)
+
+	return ciphermsgs
+
+def createciphermsgs_arc4(jt65msgcount, stegmsg, key, verbose=False):
+	ciphermsgs = []
+
+	#Can we fit your hidden message?
+	if jt65msgcount * 8 < len(stegmsg):
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
+
+	while len(stegmsg) % 8:
+		stegmsg += " "
+
+	tempkey = SHA.new(key).digest()
+	cryptobj = ARC4.new(tempkey)
+	cipherdata = cryptobj.encrypt(stegmsg)
+	cipherlist = list(bytearray(cipherdata))
+
+	if verbose: 			
+		print "Cipher list: " + str(cipherlist)
+
+	for index in range(len(cipherlist)/8):
+		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+		secretjtfec = jt.prepsteg(thissteg)
+
+		if verbose:
+			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
+
+		ciphermsgs.append(secretjtfec)
+
+	return ciphermsgs
+
+def createciphermsgs_aes(jt65msgcount, stegmsg, key, aesmode, verbose=False):
+	ciphermsgs = []
+
+	#Check key size
+	if len(key) != 16 and len(key) != 24 and len(key) != 32:
+		print ("\nCipher key must be 16, 24, or 32 bytes... sorry :(\n")
+		sys.exit(0)
+
+	while len(stegmsg) % 16:
+		stegmsg += " "
+
+	#Can we fit your hidden message?
+	if aesmode == "ECB" and jt65msgcount * 8 < len(stegmsg):
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
+	elif (aesmode == "CBC" or aesmode == "CFB") and (jt65msgcount * 8 < len(stegmsg) + 16):
+		#These two modes have an additional 16 byte IV
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
+
+	#Prep the encrypted hidden data
+	iv = ""
+	if aesmode == "ECB":
+		cryptobj = AES.new(key, AES.MODE_ECB)
+	elif aesmode == "CBC":
+		iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
+		cryptobj = AES.new(key, AES.MODE_CBC, iv)
+	elif aesmode == "CFB":
+		iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
+		cryptobj = AES.new(key, AES.MODE_CFB, iv)
+
+	cipherdata = cryptobj.encrypt(stegmsg)
+	cipherlist = list(bytearray(iv)) + list(bytearray(cipherdata))
+
+	if verbose: 			
+		print "Cipher list: " + str(cipherlist)
+
+	for index in range(len(cipherlist)/8):
+		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+		secretjtfec = jt.prepsteg(thissteg)
+
+		if verbose:
+			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
+
+		ciphermsgs.append(secretjtfec)
+
+	return ciphermsgs
+
+def createciphermsgs_gpg(jt65msgcount, stegmsg, recipient, verbose=False):
+	ciphermsgs = []
+
+	while len(stegmsg) % 8:
+		stegmsg += " "
+
+	gpg = GPG()
+	stegstream = io.StringIO(unicode(stegmsg))
+	cipherdata = gpg.encrypt_file(stegstream, recipient)
+
+	if cipherdata == "":
+		print "You must set the recipient's trust level to -something- in your keyring before we can encrypt the message"
+		sys.exit(0)
+
+	cipherlist = list(bytearray(str(cipherdata)))
+
+	if verbose: 			
+		print "Cipher list: " + str(cipherlist)
+
+	if jt65msgcount * 8 < len(cipherlist):
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
+
+	for index in range(len(cipherlist)/8):
+		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
+		secretjtfec = jt.prepsteg(thissteg)
+
+		if verbose:
+			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
+
+		ciphermsgs.append(secretjtfec)
+
+	return ciphermsgs
+
+def createciphermsgs_otp(jt65msgcount, stegmsg, key, verbose=False):
+	ciphermsgs = []
+
+	#Can we fit your hidden message?
+	if jt65msgcount * 13 < len(stegmsg):
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
+
+	stegmsg = otp_encode(stegmsg, key)
+
+	for index in range(jt65msgcount):
+		secretjt = jt.encode(stegmsg[index*13:index*13+13])
+		secretjtfec = jt.prepsteg(secretjt)
+
+		if verbose:
+			print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
+			print "Secret message " + str(index) + " encoded : " + str(secretjt)
+			print "Secret message " + str(index) + " encoded with FEC : " + str(secretjt)
+
+		ciphermsgs.append(secretjtfec)
 
 	return ciphermsgs
 
