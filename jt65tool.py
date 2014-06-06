@@ -141,12 +141,12 @@ def getstegresult(stegcollection, cipher, key, aesmode, verbose):
 		return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose)
 
 	elif cipher == "XOR":
-		if stegcollection[0][0] & 0x80 != 0x80:
+		if getstatusbyte(stegcollection[0]) & 0x80 != 0x80:
 			#The first packet in the collection does not represet a 'start' packet, reset the collection and catch the next one
 			return True, "Monitored steg mid-transmission, resetting for next transmission.", True, ""
 
 		#The first packet represents a 'start' packet, do we have all the packets?
-		expectedpackets = stegcollection[0][0] & 0x7F
+		expectedpackets = getstatusbyte(stegcollection[0]) & 0x7F
 		if expectedpackets <= len(stegcollection):
 			return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose)
 
@@ -155,7 +155,10 @@ def getstegresult(stegcollection, cipher, key, aesmode, verbose):
 
 	else:
 		return False, "This cipher not completed yet", ""
-		
+
+def getstatusbyte(steglist):
+	return steglist[0]
+
 # Command line argument setup
 parser = argparse.ArgumentParser(description='Steganography tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
 groupCommands = parser.add_argument_group("Commands")
