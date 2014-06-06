@@ -37,6 +37,7 @@ def checkpacket(packet) :
   
 def output(diffs, packet) :
 # formated output for a packet and some diffs
+# #diffs, totalconfidence, averageconfidence, mediaconfidence, stddevconfidence, averagedistance, s2db, freq, a1, a2, decode
     conftotal = 0
     diffdist = 0
     for dif in diffs:
