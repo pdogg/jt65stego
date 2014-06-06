@@ -14,6 +14,12 @@ import io
 import os
 import math
 
+#Maximum number of bytes a multi-packet steg message may contain
+MAX_MULTI_PACKET_STEG_BYTES_XOR		= 64 * 8
+MAX_MULTI_PACKET_STEG_BYTES_ARC4	= 128 * 8
+MAX_MULTI_PACKET_STEG_BYTES_AES		= 128 * 8
+MAX_MULTI_PACKET_STEG_BYTES_GPG		= 128 * 8
+
 def jtsteg(prepedmsg,secretmsg,key) :
 #simple stego routine to enbed a secret message into a preped jt65 packet according to key
 # prepedmsg - preped jt65 package ready to go on the wire
@@ -282,10 +288,16 @@ def createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose=False):
 	cipherdata = cryptobj.encrypt(stegmsg)
 	cipherlist = list(bytearray(cipherdata))
 
+	#Is the total length too big to fit into our max number of packets?
+	if len(cipherlist) > MAX_MULTI_PACKET_STEG_BYTES_XOR:
+		print("Length of hidden message exceeds capacity of multi-packet steg")
+		sys.exit(0)
+	totalpackets = len(cipherlist) / 8
+
 	if verbose: 			
 		print "Cipher list: " + str(cipherlist)
 
-	for index in range(len(cipherlist)/8):
+	for index in range(totalpackets):
 		#Determine how many bytes are in this message
 		if originallength >= 8:
 			thislength = 8
@@ -293,10 +305,25 @@ def createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose=False):
 			thislength = originallength % 8
 		originallength -= 8
 
-		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], thislength)
+		status = 0
+		if index == 0:
+			#First packet sets first bit to one, then remaining bits show total number of packets
+			status = 0x80 | totalpackets
+		elif index == totalpackets - 1:
+			#Last packet sets second bit to one, then remaining bites show how many bytes to read out of this packet
+			status = status | 0x40 | thislength
+		else :
+			#All remaining packets send packet number, zero indexed
+			status = index
+		if index == 0 and index == totalpackets - 1:
+			#Handle the case where the total size is only one packet long
+			status = 0x80 | 0x40 | thislength
+
+		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], status)
 		secretjtfec = jt.prepsteg(thissteg)
 
 		if verbose:
+			print "Status: " + str(status) + " thislength : " + str(thislength)
 			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
 			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
 
@@ -510,7 +537,13 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 		elif cipher == "XOR":
 			thesebytes = jt65tobytes(value)
 			thisstatus = thesebytes[0:1]
-			thisunstegbytes = thesebytes[1:thisstatus+1]
+
+			if thisstatus & 0x40 == 0x40:
+				#This is the last packet, signals how many bytes to read
+				bytestoread = thisstatus & 0x3F
+				thisunstegbytes = thesebytes[1:bytestoread+1]
+			else:
+				thisunstegbytes = thesebytes[1:]
 			
 			if verbose:
 				print "Steg Data in Message " + str(index) + " : " + str(thisunstegbytes)
