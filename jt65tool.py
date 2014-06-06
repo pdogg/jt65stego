@@ -21,7 +21,6 @@ import jt65sound
 STEG_ENABLED = True
 STEG_DETECTION_ERROR_THRESHOLD = 17
 hidekey = []
-stegcollection = []
 
 def ValidateArguments(args):
 	if args.encode and args.decode:
@@ -99,7 +98,7 @@ def processinput(stdin, wavin, verbose):
 
 	return JT65data
 
-def performwavdecode(filename):
+def performwavdecode(filename, stegcollection):
 	containssteg = False
 	messages = jt65sound.inputwavfile(filename, verbose=args.verbose)
 
@@ -250,6 +249,7 @@ elif args.decode:
 
 # Interactive - Just listening for now
 elif args.interactive:
+	stegcollection = []
 
 	while True:
 		#Wait for start of minute
@@ -264,4 +264,4 @@ elif args.interactive:
 			subprocess.call(["./jt65recorder.py", filename], stdout=fnull, stderr=fnull)
 
 		print "Decoding..."
-		thread.start_new_thread(performwavdecode, (filename,))	#Start in new thread so slower machines won't miss next msg
+		thread.start_new_thread(performwavdecode, (filename,stegcollection,))	#Start in new thread so slower machines won't miss next msg
