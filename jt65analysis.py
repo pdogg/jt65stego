@@ -5,7 +5,7 @@ import copy
 import argparse
 import jt65stego
 import jt65wrapy
-
+import numpy as np
 
 def eq(a, b) :
 #for map in checkpacket
@@ -30,8 +30,7 @@ def checkpacket(packet) :
     if not symbolmap[i] :
       diffs.append([ i, symbols[i], realmessage[i], confidence[i] ])
       
-  if diffs and verbose:    
-    print str(len(diffs)) +  "," + str(conftotal / len(diffs))
+
   
   return diffs
   
@@ -39,10 +38,11 @@ def checkpacket(packet) :
 def output(diffs, packet) :
 # formated output for a packet and some diffs
     conftotal = 0
+    diffdist = 0
     for dif in diffs:
 	conftotal += dif[3]
-        
-    print str(len(diffs)) +  ", " + str(conftotal / len(diffs)) +", " + packet[2]  +  ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6]
+        diffdist += abs(dif[1]-dif[2])
+    print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(diffs[:3]))  + ", " + str(np.std(diffs[:3]))+  ", " + str(diffdist/len(diffs))   +  ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + packet[2]
       
 if __name__ == "__main__":
   
