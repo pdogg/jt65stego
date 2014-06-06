@@ -12,6 +12,7 @@ import binascii
 import struct
 import io
 import os
+import math
 
 def jtsteg(prepedmsg,secretmsg,key) :
 #simple stego routine to enbed a secret message into a preped jt65 packet according to key
@@ -258,7 +259,7 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 		if verbose: 			
 			print "Cipher list: " + str(cipherlist)
 
-		for index in range(jt65msgcount):
+		for index in range(len(cipherlist)/8):
 			#Determine how many bytes are in this message
 			if originallength >= 8:
 				thislength = 8
@@ -292,7 +293,7 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 		if verbose: 			
 			print "Cipher list: " + str(cipherlist)
 
-		for index in range(jt65msgcount):
+		for index in range(len(cipherlist)/8):
 			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
 			secretjtfec = jt.prepsteg(thissteg)
 
@@ -337,7 +338,7 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 		if verbose: 			
 			print "Cipher list: " + str(cipherlist)
 
-		for index in range(jt65msgcount):
+		for index in range(len(cipherlist)/8):
 			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
 			secretjtfec = jt.prepsteg(thissteg)
 
@@ -368,7 +369,7 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 			print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
 			sys.exit(0)
 
-		for index in range(jt65msgcount):
+		for index in range(len(cipherlist)/8):
 			thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
 			secretjtfec = jt.prepsteg(thissteg)
 
@@ -404,7 +405,14 @@ def steginject(jt65data, noise, cipherdata, hidekey, verbose=False):
 	finalpackets = []
 
 	for index in range(len(jt65data)):
-		stegedpacket = jtsteg(jt65data[index],cipherdata[index],hidekey)
+
+		if index < len(cipherdata):
+			stegedpacket = jtsteg(jt65data[index],cipherdata[index],hidekey)
+
+		else:
+			#There were more JT65 msgs than needed to carry the cipherdata, just use the leftover JT65 msgs as is
+			stegedpacket = jt65data[index]
+
 		stegedpacket = randomcover(stegedpacket,hidekey,noise,verbose)
 		finalpackets.append(stegedpacket)
 
