@@ -2,12 +2,14 @@ import unittest
 import random
 import os
 import string
+import copy
 
 import numpy as np
 import jt65stego as jts
 import jt65sound
 
 MAX_COVER_NOISE = 5
+STEG_DETECTION_ERROR_THRESHOLD = 17
 
 class TestText(unittest.TestCase):
 
@@ -51,6 +53,27 @@ class TestText(unittest.TestCase):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
 
+	def test_NoCipher_WithSteg_Extra(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode with more JT65 msgs than necessary
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "BEACON FTW AND DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "none", "", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalresultmsgs = list(finalmsgs)
+			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "none", "", "", False)
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
 	def test_XOR(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
@@ -67,6 +90,33 @@ class TestText(unittest.TestCase):
 			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "XOR", "XOR rox and all that jazz", "", False)
 			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_XOR_Extra(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode with more JT65 msgs than necessary
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalmsgscopy = copy.deepcopy(finalmsgs)
+			jt65stegmsgs = []
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+
+			for i in range(len(finalmsgscopy)):
+				if jts.validatesteg(decodedjt65msgs[i], finalmsgscopy[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, False):
+					jt65stegmsgs.append(finalmsgscopy[i])
+			stegdata = jts.retrievesteg(jt65stegmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "XOR", "XOR rox and all that jazz", "", False)
+
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -93,6 +143,33 @@ class TestText(unittest.TestCase):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
 
+	def test_ARC4_Extra(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode with more JT65 msgs than necessary
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalmsgscopy = copy.deepcopy(finalmsgs)
+			jt65stegmsgs = []
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+
+			for i in range(len(finalmsgscopy)):
+				if jts.validatesteg(decodedjt65msgs[i], finalmsgscopy[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, False):
+					jt65stegmsgs.append(finalmsgscopy[i])
+			stegdata = jts.retrievesteg(jt65stegmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "ARC4", "RC4 is the most secure algorithm in the world", "", False)
+
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
 	def test_AES_ECB(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
@@ -109,6 +186,33 @@ class TestText(unittest.TestCase):
 			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "ECB", False)
 			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_AES_ECB_Extra(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode with more JT65 msgs than necessary
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalmsgscopy = copy.deepcopy(finalmsgs)
+			jt65stegmsgs = []
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+
+			for i in range(len(finalmsgscopy)):
+				if jts.validatesteg(decodedjt65msgs[i], finalmsgscopy[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, False):
+					jt65stegmsgs.append(finalmsgscopy[i])
+			stegdata = jts.retrievesteg(jt65stegmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "ECB", False)
+
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
@@ -135,6 +239,33 @@ class TestText(unittest.TestCase):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
 
+	def test_AES_CBC_Extra(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode with more JT65 msgs than necessary
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CBC", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalmsgscopy = copy.deepcopy(finalmsgs)
+			jt65stegmsgs = []
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+
+			for i in range(len(finalmsgscopy)):
+				if jts.validatesteg(decodedjt65msgs[i], finalmsgscopy[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, False):
+					jt65stegmsgs.append(finalmsgscopy[i])
+			stegdata = jts.retrievesteg(jt65stegmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "CBC", False)
+
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
 	def test_AES_CFB(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
@@ -156,6 +287,33 @@ class TestText(unittest.TestCase):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
 
+	def test_AES_CFB_Extra(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode with more JT65 msgs than necessary
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "AES", "AES is totes secure, right? Yeah", "", "CFB", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalmsgscopy = copy.deepcopy(finalmsgs)
+			jt65stegmsgs = []
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+
+			for i in range(len(finalmsgscopy)):
+				if jts.validatesteg(decodedjt65msgs[i], finalmsgscopy[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, False):
+					jt65stegmsgs.append(finalmsgscopy[i])
+			stegdata = jts.retrievesteg(jt65stegmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "CFB", False)
+
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
 	def test_OTP(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
@@ -172,6 +330,33 @@ class TestText(unittest.TestCase):
 			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "OTP", "I LOVE SECURITY AND STUFF", "", False)
 			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_OTP_Extra(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode with more JT65 msgs than necessary
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "BEACON FTW AND DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "OTP", "I LOVE SECURITY AND STUFF", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalmsgscopy = copy.deepcopy(finalmsgs)
+			jt65stegmsgs = []
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+
+			for i in range(len(finalmsgscopy)):
+				if jts.validatesteg(decodedjt65msgs[i], finalmsgscopy[i], hidekey, STEG_DETECTION_ERROR_THRESHOLD, False):
+					jt65stegmsgs.append(finalmsgscopy[i])
+			stegdata = jts.retrievesteg(jt65stegmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "OTP", "I LOVE SECURITY AND STUFF", "", False)
+
 			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
 			for i in range(len(jt65msgs)):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
