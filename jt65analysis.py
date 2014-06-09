@@ -4,6 +4,7 @@ import sys
 import copy
 import argparse
 import math
+import csv
 import jt65stego
 import jt65wrapy
 import numpy as np
@@ -13,7 +14,14 @@ def eq(a, b) :
   return (a == b)
 
 def col(a, i):
-    return [row[i] for row in a]
+    return [float(row[i]) for row in a]
+
+def selecterrors(errors, a):
+  rows = [] 
+  for row in a :
+    if int(row[0]) == errors :
+      rows.append(row)
+  return rows
 
 def gridtolatlon(grid) :
 #takes in a maidenhead grid and returns lat, lon
@@ -142,6 +150,44 @@ def output(diffs, packet, distances=False, distancegrid="") :
       print "0, 0, 0, 0, 0, 0, " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2]   
 
       
+def processtextfile(filename, threshold=10) :
+# process a textfile of output above and generate distance / snr / error stats
+  rows = []
+  f = open(filename)
+  for row in csv.reader(f) :
+    rows.append(row)
+     
+  print "Number of packets in file:			" + str(len(rows))
+  print "\n"
+  print "Median Number of Errors:			" + str(np.median(col(rows,0))) 
+  print "Average Number of Errors:			" + str(np.average(col(rows,0)))
+  print "Standard Deviation of Errors:			" + str(np.std(col(rows,0)))
+  print "\n"
+  print "Median SNR:					" + str(np.median(col(rows,11))) 
+  print "Average SNR:					" + str(np.average(col(rows,11)))
+  print "Standard Deviation SNR:				" + str(np.std(col(rows,11)))
+  
+  inrangepackets = []
+  for i in range(0, threshold + 1):
+    setpackets = selecterrors(i, rows)
+    inrangepackets +=  setpackets
+    
+  print "\n"
+  print "Number of packets in set with " + str(threshold) +" or less errors: " + str(len(inrangepackets))
+  
+  distances = []
+  for entry in col(inrangepackets,10) :
+      if entry != 0 :
+       distances.append(entry)
+  
+  print "	Max Distance of Set:			" + str(np.amax(distances))
+  print "	Median Distance of Set:			" + str(np.median(distances)) 
+  print "	Average Distance of Set:		" + str(np.average(distances))
+  print "	90% Distance of Set:			" + str(np.percentile(distances,90))
+
+       
+  
+      
 if __name__ == "__main__":
   
   parser = argparse.ArgumentParser(description='Packet Analysis tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
@@ -150,7 +196,8 @@ if __name__ == "__main__":
   groupCommands = parser.add_argument_group("Commands")
   groupOptions = parser.add_argument_group("Options")
   groupOptions.add_argument('--distance', metavar='<gridloc>', help='calc distance from grid')
-  groupSource.add_argument('--file', metavar='<filename>', help='Read from file')
+  groupSource.add_argument('--file', metavar='<filename>', help='Read from and parse wav file')
+  groupSource.add_argument('--text', metavar='<textfile>', help='Read from and parse a text file for distance and snr stats')
   groupCommands.add_argument('--verbose', action='store_true', help='verbosity')
   
   args = parser.parse_args()
@@ -160,17 +207,23 @@ if __name__ == "__main__":
   if args.verbose :
     verbose = True
     print args.file
-  packets = jt65wrapy.decodewav(args.file)
-  if verbose :
-    print packets
-  homegrid = ""
-  dodistance = False
-  if args.distance :
-    homegrid = args.distance
-    dodistance = True 
-  for packet in packets :
-   
-   diffs=checkpacket(packet)
-   output(diffs,packet, dodistance, homegrid)
+
+#decode a wav file    
+  if args.file : 
+    packets = jt65wrapy.decodewav(args.file)
+    if verbose :
+      print packets
+    homegrid = ""
+    dodistance = False
+    if args.distance :
+      homegrid = args.distance
+      dodistance = True 
+    for packet in packets :  
+     diffs=checkpacket(packet)
+     output(diffs,packet, dodistance, homegrid)
   
   
+#decode a text file
+
+  if args.text :
+    processtextfile(args.text)
