@@ -117,8 +117,8 @@ def performwavdecode(filename, stegcollection):
 
 		if containssteg:
 			#Retrieve steg message
-			stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
-			stegcollection.append(stegdata)
+			stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose, True)	#Unprep the steg to get actual bytes
+			stegcollection.append(stegdata[0])
 
 			#Determine if we have a steg result
 			containsstegresult, stegstatus, resetcollection, stegmsg = getstegresult(stegcollection, args.cipher, args.key, args.aesmode, args.verbose)
@@ -138,23 +138,30 @@ def performwavdecode(filename, stegcollection):
 
 def getstegresult(stegcollection, cipher, key, aesmode, verbose):
 	if cipher == "none":
-		return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose)
+		return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose, False)	#Steg has already been unprepped
 
 	elif cipher == "XOR":
-		if getstatusbyte(stegcollection[0]) & 0x80 != 0x80:
+		localarray = stegcollection[0]
+
+		if verbose:
+			print "localarray : " + str(localarray)
+
+		localarray = jts.jt65tobytes(localarray)
+
+		if getstatusbyte(localarray) & 0x80 != 0x80:
 			#The first packet in the collection does not represet a 'start' packet, reset the collection and catch the next one
-			return True, "Monitored steg mid-transmission, resetting for next transmission.", True, ""
+			return False, "Monitored steg mid-transmission, resetting for next transmission.", True, ""
 
 		#The first packet represents a 'start' packet, do we have all the packets?
-		expectedpackets = getstatusbyte(stegcollection[0]) & 0x7F
+		expectedpackets = getstatusbyte(localarray) & 0x7F
 		if expectedpackets <= len(stegcollection):
-			return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose)
+			return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose, False)
 
 		#The multi-packet transmission is not complete yet
-		return True, "(" + len(stegcollection) + "/" + expectedpackets + ") total packets received.", False, ""
+		return False, "(" + str(len(stegcollection)) + "/" + str(expectedpackets) + ") total packets received.", False, ""
 
 	else:
-		return False, "This cipher not completed yet", ""
+		return False, "This cipher not completed yet", False, ""
 
 def getstatusbyte(steglist):
 	return steglist[0]

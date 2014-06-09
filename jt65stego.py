@@ -505,7 +505,7 @@ def validatesteg(jt65msg, rxsymbols, hidekey, errordetectionthreshold, verbose=F
 
 	return False
 
-def retrievesteg(jt65data, hidekey, verbose=False):
+def retrievesteg(jt65data, hidekey, verbose=False, unprep=False):
 #Retrieve steganography data from array of JT65 data
 	stegdata = []
 
@@ -515,18 +515,22 @@ def retrievesteg(jt65data, hidekey, verbose=False):
 		if verbose:
 			print "Steg Bytes in Message " + str(index) + " : " + str(data)
 
+		if unprep:
+			data = jt.unprepsteg(data)
+
 		stegdata.append(data)
 
 	return stegdata
 
-def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
+def deciphersteg(stegdata, cipher, key, aesmode, verbose=False, unprep=True):
 #Decipher hidden message from array of data hidden in JT65 errors
 	stegedmsg = ""
 	stegedmsgba = np.array(range(0),dtype=np.int32)
 	statusar = []
 
 	for index,value in enumerate(stegdata):
-		value = jt.unprepsteg(value) #Decode real data from FEC
+		if unprep:
+			value = jt.unprepsteg(value) #Decode real data from FEC
 
 		if cipher == "none" or cipher=="OTP":
 			recoveredtext = jt.decode(value)[0:13]
@@ -536,6 +540,7 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False):
 
 		elif cipher == "XOR":
 			thesebytes = jt65tobytes(value)
+
 			thisstatus = thesebytes[0:1]
 
 			if thisstatus & 0x40 == 0x40:
