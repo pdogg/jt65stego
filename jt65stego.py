@@ -70,16 +70,16 @@ def getnoisekey(password, length=20) :
    sha512calc = hashlib.sha512()
    sha512calc.update(password)
    passwordhash = sha512calc.digest()
-#  print binascii.hexlify(passwordhash)
    donthavekey = True
    hashindex = 0
    keyindex = 0
    while donthavekey :
     
     if hashindex >= len(passwordhash) :
-      return False
+      sha512calc.update(passwordhash)
+      passwordhash = sha512calc.digest()
+      hashindex = 0
     potentialsymbol = int(struct.unpack("B",passwordhash[hashindex])[0]) % 63
-#    print potentialsymbol
     if potentialsymbol not in output :
       output[keyindex] = potentialsymbol
       keyindex += 1
