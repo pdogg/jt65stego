@@ -8,6 +8,7 @@ import csv
 import jt65stego
 import jt65wrapy
 import numpy as np
+import matplotlib.pyplot as plt
 
 def eq(a, b) :
 #for map in checkpacket
@@ -162,10 +163,18 @@ def processtextfile(filename, threshold=10) :
   print "Median Number of Errors:			" + str(np.median(col(rows,0))) 
   print "Average Number of Errors:			" + str(np.average(col(rows,0)))
   print "Standard Deviation of Errors:			" + str(np.std(col(rows,0)))
+  print "Error Bins:					\n" + str(np.bincount(col(rows,0), None, 63))
   print "\n"
   print "Median SNR:					" + str(np.median(col(rows,11))) 
   print "Average SNR:					" + str(np.average(col(rows,11)))
   print "Standard Deviation SNR:				" + str(np.std(col(rows,11)))
+  
+  errorplot = plt.figure()
+  errorplot.suptitle('Error Histogram', fontsize=14, fontweight='bold')
+  axerror = errorplot.add_subplot(111)
+  numbins = 63
+  axerror.hist(col(rows,0),numbins,color='red',alpha=0.8)
+  errorplot.show()
   
   inrangepackets = []
   for i in range(0, threshold + 1):
@@ -179,14 +188,19 @@ def processtextfile(filename, threshold=10) :
   for entry in col(inrangepackets,10) :
       if entry != 0 :
        distances.append(entry)
-  
+  print "	" + str(len(distances)) + " have distance data"
   print "	Max Distance of Set:			" + str(np.amax(distances))
   print "	Median Distance of Set:			" + str(np.median(distances)) 
   print "	Average Distance of Set:		" + str(np.average(distances))
   print "	90% Distance of Set:			" + str(np.percentile(distances,90))
 
-       
-  
+  distplot = plt.figure()
+  distplot.suptitle('Distances for errors <= ' + str(threshold), fontsize=14, fontweight='bold')
+  axdist = distplot.add_subplot(111)
+  numbins = 10
+  axdist.hist(distances,numbins,color='green',alpha=0.8)
+  distplot.show()
+  raw_input("Press Enter to continue...")
       
 if __name__ == "__main__":
   
