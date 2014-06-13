@@ -114,6 +114,10 @@ def checkpacket(packet) :
     if not symbolmap[i] :
       diffs.append([ i, symbols[i], realmessage[i], confidence[i] ])    
   
+  print diffs
+  print realmessage
+  print symbols
+
   return diffs
   
   
@@ -172,7 +176,7 @@ def processtextfile(filename, threshold=10) :
   errorplot = plt.figure()
   errorplot.suptitle('Error Histogram', fontsize=14, fontweight='bold')
   axerror = errorplot.add_subplot(111)
-  numbins = 63
+  numbins = max(col(rows,0))
   axerror.hist(col(rows,0),numbins,color='red',alpha=0.8)
   errorplot.show()
   
@@ -200,6 +204,24 @@ def processtextfile(filename, threshold=10) :
   numbins = 10
   axdist.hist(distances,numbins,color='green',alpha=0.8)
   distplot.show()
+  
+  xmin = 0
+  xmax = 63
+  ymin = 0
+  ymax = 255
+  
+  heatplot = plt.figure()
+  heatplot.suptitle('Errors / std(confidence) ', fontsize=14, fontweight='bold')
+  axheat = heatplot.add_subplot(111)
+  axheat.hexbin(col(rows,0),col(rows,4), bins='log', gridsize=200, cmap=plt.cm.bone)
+  heatplot.show()
+  
+  heatplot2 = plt.figure()
+  heatplot2.suptitle('Errors / avg(confidence) ', fontsize=14, fontweight='bold')
+  axheat2 = heatplot2.add_subplot(111)
+  axheat2.hexbin(col(rows,0),col(rows,2), bins='log', gridsize=200, cmap=plt.cm.bone)
+  heatplot2.show()
+  
   raw_input("Press Enter to continue...")
       
 if __name__ == "__main__":
@@ -224,6 +246,7 @@ if __name__ == "__main__":
 
 #decode a wav file    
   if args.file : 
+    sys.stderr.write("processing: " + args.file + "\n")
     packets = jt65wrapy.decodewav(args.file)
     if verbose :
       print packets
