@@ -16,6 +16,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import sys
+import glob
 import copy
 import argparse
 import math
@@ -111,7 +112,7 @@ def getgrid(string) :
       
     
 
-def checkpacket(packet) :
+def checkpacket(packet, verbose=False) :
 #packet is a two dimensional array of symbols and confidence
 #returns diffs list of [diff position, packet symbol, clean encode symbol, confidence]
 #if verbose prints <number of diffs>,<average confidence of diffs> to stdout
@@ -128,10 +129,10 @@ def checkpacket(packet) :
   for i in range(0,63) :
     if not symbolmap[i] :
       diffs.append([ i, symbols[i], realmessage[i], confidence[i] ])    
-  
-  print diffs
-  print realmessage
-  print symbols
+  if verbose :
+    print diffs
+    print realmessage
+    print symbols
 
   return diffs
   
@@ -240,8 +241,16 @@ def processtextfile(filename, threshold=10) :
   axheat3.hexbin(errorcol,snrcol, bins='log', gridsize=200, cmap=plt.cm.bone)
   heatplot3.show()
   
+def wavfileinput(filename, verbose=False, dodistance=False, homegrid=""):
+# does the analysis for a wav file
+    sys.stderr.write("processing: " + filename + "\n")
+    packets = jt65wrapy.decodewav(filename)
+    if verbose :  
+      print packets
   
-
+    for packet in packets :  
+     diffs=checkpacket(packet, verbose)
+     output(diffs,packet, dodistance, homegrid)
       
 if __name__ == "__main__":
   
@@ -252,6 +261,7 @@ if __name__ == "__main__":
   groupOptions = parser.add_argument_group("Options")
   groupOptions.add_argument('--distance', metavar='<gridloc>', help='calc distance from grid')
   groupSource.add_argument('--file', metavar='<filename>', help='Read from and parse wav file')
+  groupSource.add_argument('--dir', metavar='<dirname>', help='Read from and parse all wav files in a given path')
   groupSource.add_argument('--text', metavar='<textfile>', help='Read from and parse a text file for distance and snr stats')
   groupCommands.add_argument('--verbose', action='store_true', help='verbosity')
   
@@ -261,23 +271,24 @@ if __name__ == "__main__":
   #add some validation
   if args.verbose :
     verbose = True
-    print args.file
+  homegrid = ""
+  dodistance= False
+  if args.distance :
+    dodistance = True 
+    homegrid = args.distance
 
 #decode a wav file    
   if args.file : 
-    sys.stderr.write("processing: " + args.file + "\n")
-    packets = jt65wrapy.decodewav(args.file)
-    if verbose :  
-      print packets
-    homegrid = ""
-    dodistance = False
-    if args.distance :
-      homegrid = args.distance
-      dodistance = True 
-    for packet in packets :  
-     diffs=checkpacket(packet)
-     output(diffs,packet, dodistance, homegrid)
+    wavfileinput(args.file, verbose, dodistance, homegrid) 
   
+  if args.dir :
+    wavlist = glob.glob(args.dir + "/*.wav")
+    if not wavlist :
+      print "No .wav files found in : " + args.dir
+      sys.exit(99)
+    for wav in wavlist :
+      wavfileinput(wav, verbose, dodistance, homegrid)
+      
   
 #decode a text file
 
