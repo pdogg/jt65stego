@@ -272,31 +272,7 @@ def createciphermsgs_none(jt65msgcount, stegmsg, verbose=False):
 
 	return ciphermsgs
 
-def createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose=False):
-	ciphermsgs = []
-
-	#Can we fit your hidden message?
-	if jt65msgcount * 8 < len(stegmsg):
-		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
-		sys.exit(0)
-
-	originallength = len(stegmsg)
-	while len(stegmsg) % 8:
-		stegmsg += chr(random.randint(0, 255))
-
-	cryptobj = XOR.new(key)
-	cipherdata = cryptobj.encrypt(stegmsg)
-	cipherlist = list(bytearray(cipherdata))
-
-	#Is the total length too big to fit into our max number of packets?
-	if len(cipherlist) > MAX_MULTI_PACKET_STEG_BYTES_XOR:
-		print("Length of hidden message exceeds capacity of multi-packet steg")
-		sys.exit(0)
-	totalpackets = len(cipherlist) / 8
-
-	if verbose: 			
-		print "Cipher list: " + str(cipherlist)
-
+def createciphermsgs_packer_xor(totalpackets, originallength, ciphermsgs, cipherlist, verbose=False):
 	for index in range(totalpackets):
 		#Determine how many bytes are in this message
 		if originallength >= 8:
@@ -329,6 +305,53 @@ def createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose=False):
 
 		ciphermsgs.append(secretjtfec)
 
+def createciphermsgs_packer_other(totalpackets, ciphermsgs, cipherlist, verbose=False):
+	for index in range(totalpackets):
+		status = 0
+		if index == 0:
+			#First packet sets first bit to one, then remaining bits show total number of packets
+			status = 0x80 | totalpackets
+		else :
+			#All remaining packets send packet number, zero indexed
+			status = index
+
+		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], status)
+		secretjtfec = jt.prepsteg(thissteg)
+
+		if verbose:
+			print "Status: " + str(status) + " thislength : " + str(thislength)
+			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
+			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
+
+		ciphermsgs.append(secretjtfec)
+
+def createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose=False):
+	ciphermsgs = []
+
+	#Can we fit your hidden message?
+	if jt65msgcount * 8 < len(stegmsg):
+		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
+		sys.exit(0)
+
+	originallength = len(stegmsg)
+	while len(stegmsg) % 8:
+		stegmsg += chr(random.randint(0, 255))
+
+	cryptobj = XOR.new(key)
+	cipherdata = cryptobj.encrypt(stegmsg)
+	cipherlist = list(bytearray(cipherdata))
+
+	#Is the total length too big to fit into our max number of packets?
+	if len(cipherlist) > MAX_MULTI_PACKET_STEG_BYTES_XOR:
+		print("Length of hidden message exceeds capacity of multi-packet steg")
+		sys.exit(0)
+	totalpackets = len(cipherlist) / 8
+
+	if verbose: 			
+		print "Cipher list: " + str(cipherlist)
+
+	createciphermsgs_packer_xor(totalpackets, originallength, ciphermsgs, cipherlist, verbose)
+
 	return ciphermsgs
 
 def createciphermsgs_arc4(jt65msgcount, stegmsg, key, verbose=False):
@@ -347,18 +370,16 @@ def createciphermsgs_arc4(jt65msgcount, stegmsg, key, verbose=False):
 	cipherdata = cryptobj.encrypt(stegmsg)
 	cipherlist = list(bytearray(cipherdata))
 
+	#Is the total length too big to fit into our max number of packets?
+	if len(cipherlist) > MAX_MULTI_PACKET_STEG_BYTES_ARC4:
+		print("Length of hidden message exceeds capacity of multi-packet steg")
+		sys.exit(0)
+	totalpackets = len(cipherlist) / 8
+
 	if verbose: 			
 		print "Cipher list: " + str(cipherlist)
 
-	for index in range(len(cipherlist)/8):
-		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
-		secretjtfec = jt.prepsteg(thissteg)
-
-		if verbose:
-			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
-
-		ciphermsgs.append(secretjtfec)
+	createciphermsgs_packer_other(totalpackets, ciphermsgs, cipherlist, verbose)
 
 	return ciphermsgs
 

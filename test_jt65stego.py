@@ -215,7 +215,7 @@ class TestStegFunctions(unittest.TestCase):
 
 	def test_CreateCipher_ARC4(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
-		expectedresult = [np.array([35, 36, 29, 45, 39, 33, 48, 7, 0, 12, 25, 53, 53, 37, 31, 1, 1, 11, 39, 47]), np.array([54, 61, 22, 35, 39, 18, 61, 28, 0, 16, 47, 5, 14, 48, 32, 50, 5, 25, 27, 41])]
+		expectedresult = [np.array([5, 18, 39, 8, 41, 12, 9, 20, 32, 44, 25, 53, 53, 37, 31, 1, 1, 11, 39, 47]), np.array([54, 61, 22, 35, 39, 18, 61, 28, 0, 16, 47, 5, 14, 48, 32, 50, 5, 25, 27, 41])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
