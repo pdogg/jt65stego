@@ -319,7 +319,7 @@ def createciphermsgs_packer_other(totalpackets, ciphermsgs, cipherlist, verbose=
 		secretjtfec = jt.prepsteg(thissteg)
 
 		if verbose:
-			print "Status: " + str(status) + " thislength : " + str(thislength)
+			print "Status: " + str(status)
 			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
 			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
 
@@ -417,18 +417,16 @@ def createciphermsgs_aes(jt65msgcount, stegmsg, key, aesmode, verbose=False):
 	cipherdata = cryptobj.encrypt(stegmsg)
 	cipherlist = list(bytearray(iv)) + list(bytearray(cipherdata))
 
+	#Is the total length too big to fit into our max number of packets?
+	if len(cipherlist) > MAX_MULTI_PACKET_STEG_BYTES_AES:
+		print("Length of hidden message exceeds capacity of multi-packet steg")
+		sys.exit(0)
+	totalpackets = len(cipherlist) / 8
+
 	if verbose: 			
 		print "Cipher list: " + str(cipherlist)
 
-	for index in range(len(cipherlist)/8):
-		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
-		secretjtfec = jt.prepsteg(thissteg)
-
-		if verbose:
-			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
-
-		ciphermsgs.append(secretjtfec)
+	createciphermsgs_packer_other(totalpackets, ciphermsgs, cipherlist, verbose)
 
 	return ciphermsgs
 
@@ -455,15 +453,13 @@ def createciphermsgs_gpg(jt65msgcount, stegmsg, recipient, verbose=False):
 		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
 		sys.exit(0)
 
-	for index in range(len(cipherlist)/8):
-		thissteg = bytes8tojt65(cipherlist[index*8:(index*8)+8], index)
-		secretjtfec = jt.prepsteg(thissteg)
+	#Is the total length too big to fit into our max number of packets?
+	if len(cipherlist) > MAX_MULTI_PACKET_STEG_BYTES_GPG:
+		print("Length of hidden message exceeds capacity of multi-packet steg")
+		sys.exit(0)
+	totalpackets = len(cipherlist) / 8
 
-		if verbose:
-			print "JT65 Encoded Cipher Data Msg " + str(index) + " : " + str(thissteg)
-			print "JT65 Encoded Cipher Data Msg with FEC " + str(index) + " : " + str(secretjtfec)
-
-		ciphermsgs.append(secretjtfec)
+	createciphermsgs_packer_other(totalpackets, ciphermsgs, cipherlist, verbose)
 
 	return ciphermsgs
 

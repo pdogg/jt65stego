@@ -222,7 +222,7 @@ class TestStegFunctions(unittest.TestCase):
 
 	def test_CreateCipher_AES_ECB(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
-		expectedresult = [np.array([5, 10, 17, 54, 25, 26, 30, 30, 0, 10, 35, 51, 56, 46, 33, 50, 21, 13, 41, 61]), np.array([33, 16, 25, 6, 19, 8, 11, 0, 0, 20, 26, 16, 36, 8, 6, 62, 60, 32, 24, 61])]
+		expectedresult = [np.array([35, 60, 43, 19, 23, 55, 39, 13, 32, 42, 35, 51, 56, 46, 33, 50, 21, 13, 41, 61]), np.array([33, 16, 25, 6, 19, 8, 11, 0, 0, 20, 26, 16, 36, 8, 6, 62, 60, 32, 24, 61])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
