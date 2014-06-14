@@ -74,12 +74,75 @@ class TestText(unittest.TestCase):
 				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
 			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
 
-	def test_XOR(self):
+	def test_XOR_6(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["KB2BBC KA1AAB DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEFCON"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalresultmsgs = list(finalmsgs)
+			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "XOR", "XOR rox and all that jazz", "", False)
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_XOR_8(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["KB2BBC KA1AAB DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEFCON22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalresultmsgs = list(finalmsgs)
+			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "XOR", "XOR rox and all that jazz", "", False)
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_XOR_10(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
 			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "DEF CON 22"
+			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
+			hidekey = jts.getnoisekey(key)
+			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)
+			finalmsgs = jts.steginject(jt65data, i, cipherdata, hidekey, False)
+
+			#Decode
+			finalresultmsgs = list(finalmsgs)
+			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
+			resultstegmsg = jts.deciphersteg(stegdata, "XOR", "XOR rox and all that jazz", "", False)
+			decodedjt65msgs = jts.decodemessages(finalmsgs, False)
+			self.assertEqual(len(decodedjt65msgs), len(jt65msgs))
+			for i in range(len(jt65msgs)):
+				self.assertEqual(jt65msgs[i].rstrip(), decodedjt65msgs[i].rstrip())
+			self.assertEqual(stegmsg.rstrip(), resultstegmsg.rstrip())
+
+	def test_XOR_23(self):
+		for i in range(MAX_COVER_NOISE):
+			#Encode
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44"]
+			jt65data = jts.jt65encodemessages(jt65msgs, False)
+			stegmsg = "DEF CON 22 VEGAS NEVADA"
 			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
 			hidekey = jts.getnoisekey(key)
 			cipherdata = jts.createciphermsgs(len(jt65data), stegmsg, "XOR", "XOR rox and all that jazz", "", "", False)

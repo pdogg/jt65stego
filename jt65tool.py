@@ -98,7 +98,7 @@ def processinput(stdin, wavin, verbose):
 
 	return JT65data
 
-def performwavdecode(filename):
+def performwavdecode(filename, stegcollection):
 	containssteg = False
 	messages = jt65sound.inputwavfile(filename, verbose=args.verbose)
 
@@ -117,17 +117,71 @@ def performwavdecode(filename):
 
 		if containssteg:
 			#Retrieve steg message
-			stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose)
+			stegdata = jts.retrievesteg(jt65datacopy, hidekey, args.verbose, True)	#Unprep the steg to get actual bytes
+			stegcollection.append(stegdata[0])
 
-			#Decipher steg message
-			stegmsg = jts.deciphersteg(stegdata, args.cipher, args.key, args.aesmode, args.verbose)
+			#Determine if we have a steg result
+			containsstegresult, stegstatus, resetcollection, stegmsg = getstegresult(stegcollection, args.cipher, args.key, args.aesmode, args.verbose)
+
+			if resetcollection:
+				stegcollection = []		#Reset the steg collection for the next incoming message
 
 		#Print result
 		for index,value in enumerate(jt65msgs):
 			print "\nDecoded JT65 message " + str(index) + " : " + colorama.Fore.BLUE + value + colorama.Fore.RESET
 
-		if containssteg:
+		if containssteg and containsstegresult:
 			print "\nHidden message : " + colorama.Fore.RED + stegmsg + colorama.Fore.RESET
+			
+		elif containssteg:
+			print "\n" + colorama.Fore.RED + "Steg detected! " + colorama.Fore.YELLOW + stegstatus + colorama.Fore.RESET
+
+def getstegresult(stegcollection, cipher, key, aesmode, verbose):
+	if cipher == "none":
+		return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose, False)	#Steg has already been unprepped
+
+	elif cipher == "XOR":
+		localarray = stegcollection[0]
+
+		if verbose:
+			print "localarray : " + str(localarray)
+
+		localarray = jts.jt65tobytes(localarray)
+
+		if getstatusbyte(localarray) & 0x80 != 0x80:
+			#The first packet in the collection does not represet a 'start' packet, reset the collection and catch the next one
+			return False, "Monitored steg mid-transmission, resetting for next transmission.", True, ""
+
+		#The first packet represents a 'start' packet, do we have all the packets?
+		expectedpackets = getstatusbyte(localarray) & 0x7F
+		if expectedpackets <= len(stegcollection):
+			return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose, False)
+
+		#The multi-packet transmission is not complete yet
+		return False, "(" + str(len(stegcollection)) + "/" + str(expectedpackets) + ") total packets received.", False, ""
+
+	else:
+		localarray = stegcollection[0]
+
+		if verbose:
+			print "localarray : " + str(localarray)
+
+		localarray = jts.jt65tobytes(localarray)
+
+		if getstatusbyte(localarray) & 0x80 != 0x80:
+			#The first packet in the collection does not represet a 'start' packet, reset the collection and catch the next one
+			return False, "Monitored steg mid-transmission, resetting for next transmission.", True, ""
+
+		#The first packet represents a 'start' packet, do we have all the packets?
+		expectedpackets = getstatusbyte(localarray) & 0x7F
+		if expectedpackets <= len(stegcollection):
+			return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose, False)
+
+		#The multi-packet transmission is not complete yet
+		return False, "(" + str(len(stegcollection)) + "/" + str(expectedpackets) + ") total packets received.", False, ""
+
+def getstatusbyte(steglist):
+	return steglist[0]
 
 # Command line argument setup
 parser = argparse.ArgumentParser(description='Steganography tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
@@ -223,6 +277,7 @@ elif args.decode:
 
 # Interactive - Just listening for now
 elif args.interactive:
+	stegcollection = []
 
 	while True:
 		#Wait for start of minute
@@ -237,4 +292,4 @@ elif args.interactive:
 			subprocess.call(["./jt65recorder.py", filename], stdout=fnull, stderr=fnull)
 
 		print "Decoding..."
-		thread.start_new_thread(performwavdecode, (filename,))	#Start in new thread so slower machines won't miss next msg
+		thread.start_new_thread(performwavdecode, (filename,stegcollection,))	#Start in new thread so slower machines won't miss next msg

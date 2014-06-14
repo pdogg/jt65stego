@@ -209,20 +209,20 @@ class TestStegFunctions(unittest.TestCase):
 
 	def test_CreateCipher_XOR(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "XOR", "XOR rox and all that jazz", "", "", False)
-		expectedresult = [np.array([3, 23, 29, 24, 60, 51, 39, 49, 2, 1, 48, 10, 5, 0, 0, 49, 8, 3, 24, 0]), np.array([8, 20, 52, 58, 43, 55, 6, 50, 0, 37, 13, 28, 44, 7, 24, 14, 58, 26, 17, 4])]
+		expectedresult = [np.array([9, 45, 15, 32, 17, 23, 39, 15, 32, 33, 48, 10, 5, 0, 0, 49, 8, 3, 24, 0]), np.array([8, 20, 52, 58, 43, 55, 6, 50, 0, 37, 13, 28, 44, 7, 24, 14, 58, 26, 17, 4])]
 		self.assertEqual(len(expectedresult), len(result))
 		self.assertEqual(result[0].tolist(), expectedresult[0].tolist())	# Cannot verify second list due to random byte padding at end of XOR cipher
 
 	def test_CreateCipher_ARC4(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
-		expectedresult = [np.array([35, 36, 29, 45, 39, 33, 48, 7, 0, 12, 25, 53, 53, 37, 31, 1, 1, 11, 39, 47]), np.array([54, 61, 22, 35, 39, 18, 61, 28, 0, 16, 47, 5, 14, 48, 32, 50, 5, 25, 27, 41])]
+		expectedresult = [np.array([5, 18, 39, 8, 41, 12, 9, 20, 32, 44, 25, 53, 53, 37, 31, 1, 1, 11, 39, 47]), np.array([54, 61, 22, 35, 39, 18, 61, 28, 0, 16, 47, 5, 14, 48, 32, 50, 5, 25, 27, 41])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
 	def test_CreateCipher_AES_ECB(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
-		expectedresult = [np.array([5, 10, 17, 54, 25, 26, 30, 30, 0, 10, 35, 51, 56, 46, 33, 50, 21, 13, 41, 61]), np.array([33, 16, 25, 6, 19, 8, 11, 0, 0, 20, 26, 16, 36, 8, 6, 62, 60, 32, 24, 61])]
+		expectedresult = [np.array([35, 60, 43, 19, 23, 55, 39, 13, 32, 42, 35, 51, 56, 46, 33, 50, 21, 13, 41, 61]), np.array([33, 16, 25, 6, 19, 8, 11, 0, 0, 20, 26, 16, 36, 8, 6, 62, 60, 32, 24, 61])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
