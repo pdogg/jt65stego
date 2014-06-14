@@ -161,23 +161,25 @@ def processtextfile(filename, threshold=10) :
   f = open(filename)
   for row in csv.reader(f) :
     rows.append(row)
-     
+  errorcol = col(rows,0)
+  snrcol = col(rows,11)
+
   print "Number of packets in file:			" + str(len(rows))
   print "\n"
-  print "Median Number of Errors:			" + str(np.median(col(rows,0))) 
-  print "Average Number of Errors:			" + str(np.average(col(rows,0)))
-  print "Standard Deviation of Errors:			" + str(np.std(col(rows,0)))
-  print "Error Bins:					\n" + str(np.bincount(col(rows,0), None, 63))
+  print "Median Number of Errors:			" + str(np.median(errorcol)) 
+  print "Average Number of Errors:			" + str(np.average(errorcol))
+  print "Standard Deviation of Errors:			" + str(np.std(errorcol))
+  print "Error Bins:					\n" + str(np.bincount(errorcol, None, 63))
   print "\n"
-  print "Median SNR:					" + str(np.median(col(rows,11))) 
-  print "Average SNR:					" + str(np.average(col(rows,11)))
-  print "Standard Deviation SNR:				" + str(np.std(col(rows,11)))
+  print "Median SNR:					" + str(np.median(snrcol)) 
+  print "Average SNR:					" + str(np.average(snrcol))
+  print "Standard Deviation SNR:				" + str(np.std(snrcol))
   
   errorplot = plt.figure()
   errorplot.suptitle('Error Histogram', fontsize=14, fontweight='bold')
   axerror = errorplot.add_subplot(111)
-  numbins = max(col(rows,0))
-  axerror.hist(col(rows,0),numbins,color='red',alpha=0.8)
+  numbins = max(errorcol)
+  axerror.hist(errorcol,numbins,color='red',alpha=0.8)
   errorplot.show()
   
   inrangepackets = []
@@ -204,25 +206,27 @@ def processtextfile(filename, threshold=10) :
   numbins = 10
   axdist.hist(distances,numbins,color='green',alpha=0.8)
   distplot.show()
-  
-  xmin = 0
-  xmax = 63
-  ymin = 0
-  ymax = 255
-  
+   
   heatplot = plt.figure()
   heatplot.suptitle('Errors / std(confidence) ', fontsize=14, fontweight='bold')
   axheat = heatplot.add_subplot(111)
-  axheat.hexbin(col(rows,0),col(rows,4), bins='log', gridsize=200, cmap=plt.cm.bone)
+  axheat.hexbin(errorcol,col(rows,4), bins='log', gridsize=200, cmap=plt.cm.bone)
   heatplot.show()
   
   heatplot2 = plt.figure()
   heatplot2.suptitle('Errors / avg(confidence) ', fontsize=14, fontweight='bold')
   axheat2 = heatplot2.add_subplot(111)
-  axheat2.hexbin(col(rows,0),col(rows,2), bins='log', gridsize=200, cmap=plt.cm.bone)
+  axheat2.hexbin(errorcol,col(rows,2), bins='log', gridsize=200, cmap=plt.cm.bone)
   heatplot2.show()
   
-  raw_input("Press Enter to continue...")
+  heatplot3 = plt.figure()
+  heatplot3.suptitle('Errors / snr ', fontsize=14, fontweight='bold')
+  axheat3 = heatplot3.add_subplot(111)
+  axheat3.hexbin(errorcol,snrcol, bins='log', gridsize=200, cmap=plt.cm.bone)
+  heatplot3.show()
+  
+  
+
       
 if __name__ == "__main__":
   
@@ -248,7 +252,7 @@ if __name__ == "__main__":
   if args.file : 
     sys.stderr.write("processing: " + args.file + "\n")
     packets = jt65wrapy.decodewav(args.file)
-    if verbose :
+    if verbose :  
       print packets
     homegrid = ""
     dodistance = False
@@ -264,3 +268,4 @@ if __name__ == "__main__":
 
   if args.text :
     processtextfile(args.text)
+    raw_input("Press Enter to continue...")
