@@ -124,7 +124,7 @@ def performwavdecode(filename, stegcollection):
 			containsstegresult, stegstatus, resetcollection, stegmsg = getstegresult(stegcollection, args.cipher, args.key, args.aesmode, args.verbose)
 
 			if resetcollection:
-				stegcollection = []		#Reset the steg collection for the next incoming message
+				stegcollection[:] = []		#Reset the steg collection for the next incoming message
 
 		#Print result
 		for index,value in enumerate(jt65msgs):
