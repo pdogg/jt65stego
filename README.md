@@ -46,7 +46,7 @@ Will build these components independently if needed
 Basic Usage
 ===========
 
-'''
+```
 usage: jt65tool.py [-h] [--encode] [--decode] [--noise <noise>]
                    [--interactive] [--batch]
                    [--jt65msg <message1,message2)(,message3)...>]
@@ -90,9 +90,9 @@ Decode Input:
   --stdin               Input from stdin (default)
   --wavin <file1.wav(,file2.wav)(,file3.wav)...>
                         Input from wav file(s)
-'''
+```
 
-'''
+```
 usage: jt65analysis.py [-h] [--distance <gridloc>] [--file <filename>]
                        [--dir <dirname>] [--text <textfile>] [--verbose]
 
@@ -112,7 +112,7 @@ Commands:
 
 Options:
   --distance <gridloc>  calc distance from grid
-'''
+```
 
 
 Credits, Thanks, and License Notes
