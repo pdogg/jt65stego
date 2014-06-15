@@ -16,6 +16,17 @@ Subpart A—General Provisions
 
 Dependencies
 ============
+You'll need a fortran and c compiler (most of our testing was done with gcc version 4.7.2 on Debian Wheezy, although
+we have made this work on Raspian, Ubuntu 14.04, Ubuntu 13.10)
+
+python 2.7 
+python-dev
+python-crypto
+python-gnupg
+python-scipy
+python-colorama
+libfftw3-dev
+pulseaudio
 
 
 Build Instructions
