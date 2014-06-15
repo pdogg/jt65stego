@@ -6,6 +6,7 @@ CC = gcc
 CXX = g++
 FC = gfortran
 
+F2PYFLAGS = -g -O2 -fno-range-check -ffixed-line-length-none -Wall -fbounds-check -fno-second-underscore -fPIC -O2 -fbounds-check -fno-second-underscore -Wall -Wno-conversion -Wno-character-truncation -c 
 FFLAGS = -O2 -ggdb -fbounds-check -Wall -Wno-conversion -fno-second-underscore \
        -fPIE -DUNIX
 CFLAGS = -I. -ggdb -fbounds-check -fPIE
@@ -22,7 +23,7 @@ CFLAGS = -I. -ggdb -fbounds-check -fPIE
 %.o: %.F90
 	${FC} ${FFLAGS} -c $<
 
-all:    jt65
+all:    jt65 f2pylib
 
 OBJS1 = pctile.o graycode.o sort.o ssort.o chkmsg.o \
 	unpackmsg.o igray.o unpackcall.o unpackgrid.o \
@@ -107,7 +108,37 @@ encode_rs.o: encode_rs.c
 decode_rs.o: decode_rs.c
 	$(CC) -c -DBIGSYM=1 -o decode_rs.o decode_rs.c
 
+	
+f2pylib:
+	rm *.o
+	$(FC) $(F2PYFLAGS) chkmsg.f90
+	$(FC) $(F2PYFLAGS) deg2grid.f90
+	$(FC) $(F2PYFLAGS) encode65.f90
+	$(FC) $(F2PYFLAGS) getpfx1.f90
+	$(FC) $(F2PYFLAGS) getpfx2.f90
+	$(FC) $(F2PYFLAGS) graycode.f90
+	$(FC) $(F2PYFLAGS) grid2deg.f90
+	$(FC) $(F2PYFLAGS) grid2k.f90
+	$(FC) $(F2PYFLAGS) interleave63.f90
+	$(FC) $(F2PYFLAGS) k2grid.f90
+	$(FC) $(F2PYFLAGS) nchar.f90
+	$(FC) $(F2PYFLAGS) packcall.f90
+	$(FC) $(F2PYFLAGS) packgrid.f90
+	$(FC) $(F2PYFLAGS) packtext.f90
+	$(FC) $(F2PYFLAGS) set.f90
+	$(FC) $(F2PYFLAGS) unpackcall.f90
+	$(FC) $(F2PYFLAGS) unpackgrid.f90
+	$(FC) $(F2PYFLAGS) unpacktext.f90
+	$(FC) $(F2PYFLAGS) unpackmsg.f90
+	$(FC) $(F2PYFLAGS) packmsg.f90
+
+	f2py -c -I. --fcompiler=gnu95 --f77exec=gfortran --f90exec=gfortran --opt="-cpp  -g -fno-range-check -ffixed-line-length-none -fbounds-check -O2 -fno-second-underscore -Wall -Wno-conversion -Wno-character-truncation"  -m JT65 *.o decode_rs.c encode_rs.c init_rs.c wrapkarn.c igray.c JT65code_all.f
+
+	cp JT65.so ../
+	
+
 .PHONY : clean
+
 
 clean:
 	rm -f *.o jt65
