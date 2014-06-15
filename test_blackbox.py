@@ -401,7 +401,7 @@ class TestText(unittest.TestCase):
 	def test_OTP(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
 			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
@@ -422,7 +422,7 @@ class TestText(unittest.TestCase):
 	def test_OTP_Extra(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode with more JT65 msgs than necessary
-			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
 			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
@@ -684,7 +684,7 @@ class TestWav(unittest.TestCase):
 	def test_OTP_WAV(self):
 		for i in range(MAX_COVER_NOISE):
 			#Encode
-			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
+			jt65msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44","KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44"]
 			jt65data = jts.jt65encodemessages(jt65msgs, False)
 			stegmsg = "BEACON FTW AND DEF CON 22"
 			key = ''.join(random.choice(string.ascii_letters + string.digits) for n in xrange(random.randint(10,30)))
