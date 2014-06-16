@@ -140,26 +140,6 @@ def getstegresult(stegcollection, cipher, key, aesmode, verbose):
 	if cipher == "none":
 		return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose, False)	#Steg has already been unprepped
 
-	elif cipher == "XOR":
-		localarray = stegcollection[0]
-
-		if verbose:
-			print "localarray : " + str(localarray)
-
-		localarray = jts.jt65tobytes(localarray)
-
-		if getstatusbyte(localarray) & 0x80 != 0x80:
-			#The first packet in the collection does not represet a 'start' packet, reset the collection and catch the next one
-			return False, "Monitored steg mid-transmission, resetting for next transmission.", True, ""
-
-		#The first packet represents a 'start' packet, do we have all the packets?
-		expectedpackets = getstatusbyte(localarray) & 0x7F
-		if expectedpackets <= len(stegcollection):
-			return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose, False)
-
-		#The multi-packet transmission is not complete yet
-		return False, "(" + str(len(stegcollection)) + "/" + str(expectedpackets) + ") total packets received.", False, ""
-
 	else:
 		localarray = stegcollection[0]
 

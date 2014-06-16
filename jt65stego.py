@@ -19,6 +19,7 @@ MAX_MULTI_PACKET_STEG_BYTES_XOR		= 64 * 8
 MAX_MULTI_PACKET_STEG_BYTES_ARC4	= 128 * 8
 MAX_MULTI_PACKET_STEG_BYTES_AES		= 128 * 8
 MAX_MULTI_PACKET_STEG_BYTES_GPG		= 128 * 8
+MAX_MULTI_PACKET_STEG_BYTES_OTP		= 64 * 8
 
 def jtsteg(prepedmsg,secretmsg,key) :
 #simple stego routine to enbed a secret message into a preped jt65 packet according to key
@@ -467,22 +468,28 @@ def createciphermsgs_otp(jt65msgcount, stegmsg, key, verbose=False):
 	ciphermsgs = []
 
 	#Can we fit your hidden message?
-	if jt65msgcount * 13 < len(stegmsg):
+	if jt65msgcount * 8 < len(stegmsg):
 		print("Length of hidden message exceeds capacity of number of valid JT65 messages provided")
 		sys.exit(0)
 
+	originallength = len(stegmsg)
+
 	stegmsg = otp_encode(stegmsg, key)
+	while len(stegmsg) % 8:
+		stegmsg += " "
+		
+	cipherlist = list(bytearray(str(stegmsg)))
 
-	for index in range(jt65msgcount):
-		secretjt = jt.encode(stegmsg[index*13:index*13+13])
-		secretjtfec = jt.prepsteg(secretjt)
+	if verbose: 			
+		print "Cipher list: " + str(cipherlist)
 
-		if verbose:
-			print "Secret message " + str(index) + " : " + stegmsg[index*13:index*13+13]
-			print "Secret message " + str(index) + " encoded : " + str(secretjt)
-			print "Secret message " + str(index) + " encoded with FEC : " + str(secretjt)
+	#Is the total length too big to fit into our max number of packets?
+	if len(cipherlist) > MAX_MULTI_PACKET_STEG_BYTES_OTP:
+		print("Length of hidden message exceeds capacity of multi-packet steg")
+		sys.exit(0)
+	totalpackets = int(math.ceil(float(len(cipherlist)) / 8))
 
-		ciphermsgs.append(secretjtfec)
+	createciphermsgs_packer_xor(totalpackets, originallength, ciphermsgs, cipherlist, verbose)
 
 	return ciphermsgs
 
@@ -549,13 +556,13 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False, unprep=True):
 		if unprep:
 			value = jt.unprepsteg(value) #Decode real data from FEC
 
-		if cipher == "none" or cipher=="OTP":
+		if cipher == "none":
 			recoveredtext = jt.decode(value)[0:13]
 			if verbose:
 				print "Steg Text in Message " + str(index) + " : " + recoveredtext
 			stegedmsg += recoveredtext
 
-		elif cipher == "XOR":
+		elif cipher == "XOR" or cipher=="OTP":
 			thesebytes = jt65tobytes(value)
 
 			thisstatus = thesebytes[0:1]
@@ -638,6 +645,11 @@ def deciphersteg(stegdata, cipher, key, aesmode, verbose=False, unprep=True):
 		stegedmsg = str(stegedmsg)
 
 	if cipher == "OTP":
-		stegedmsg = otp_decode(stegedmsg, key)
+		finalcipherdata = (''.join(chr(e) for e in stegedmsgba))
+
+		if verbose:
+			print"Cipher Data : " + str(finalcipherdata)
+
+		stegedmsg = otp_decode(str(finalcipherdata), key)
 
 	return stegedmsg

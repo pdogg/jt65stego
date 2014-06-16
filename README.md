@@ -16,6 +16,17 @@ Subpart A—General Provisions
 
 Dependencies
 ============
+You'll need a fortran and c compiler (most of our testing was done with gcc version 4.7.2 on Debian Wheezy, although
+we have made this work on Raspian, Ubuntu 14.04, Ubuntu 13.10)
+
+python 2.7 
+python-dev
+python-crypto
+python-gnupg
+python-scipy
+python-colorama
+libfftw3-dev
+pulseaudio
 
 
 Build Instructions
@@ -34,6 +45,75 @@ Will build these components independently if needed
 
 Basic Usage
 ===========
+
+```
+usage: jt65tool.py [-h] [--encode] [--decode] [--noise <noise>]
+                   [--interactive] [--batch]
+                   [--jt65msg <message1,message2)(,message3)...>]
+                   [--stegmsg <message>] [--verbose] [--cipher <type>]
+                   [--key <key>] [--recipient <user>] [--aesmode <mode>]
+                   [--stdout] [--wavout <file1.wav>] [--wsjt] [--stdin]
+                   [--wavin <file1.wav(,file2.wav)(,file3.wav...>]
+
+Steganography tools for JT65 messages.
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Commands:
+  --encode              Encode msg(s)
+  --decode              Decode msg(s)
+
+Options:
+  --noise <noise>       Amount of cover noise to insert (default: 0)
+  --interactive         Interactive mode, prompt user for msgs (default)
+  --batch               Batch mode, msgs must be parameters at command line
+  --jt65msg <message1(,message2)(,message3)...>
+                        Message to encode in JT65 (batch mode)
+  --stegmsg <message>   Message to hide in result (batch mode)
+  --verbose             Verbose output
+
+Encryption:
+  --cipher <type>       Supported ciphers are none, XOR, ARC4, AES, GPG, OTP
+                        (default: none)
+  --key <key>           Cipher/steg symbol key (batch mode)
+  --recipient <user>    Recipient for GPG mode
+  --aesmode <mode>      Supported modes are ECB, CBC, CFB (default: ECB)
+
+Encode Output:
+  --stdout              Output to terminal (default)
+  --wavout <file1.wav>  Output to wav file(s) - Multiple files suffix
+                        -001.wav, -002.wav...
+  --wsjt                Output wav file compatible with WSJT instead of WSJT-X
+
+Decode Input:
+  --stdin               Input from stdin (default)
+  --wavin <file1.wav(,file2.wav)(,file3.wav)...>
+                        Input from wav file(s)
+```
+
+```
+usage: jt65analysis.py [-h] [--distance <gridloc>] [--file <filename>]
+                       [--dir <dirname>] [--text <textfile>] [--verbose]
+
+Packet Analysis tools for JT65 messages.
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Source:
+  --file <filename>     Read from and parse wav file
+  --dir <dirname>       Read from and parse all wav files in a given path
+  --text <textfile>     Read from and parse a text file for distance and snr
+                        stats
+
+Commands:
+  --verbose             verbosity
+
+Options:
+  --distance <gridloc>  calc distance from grid
+```
+
 
 Credits, Thanks, and License Notes
 ==================================
