@@ -58,7 +58,11 @@ subroutine jt65a(dd,npts,newdat,nutc,nf1,nf2,nfqso,ntol,nagain,ndecoded)
         call timer('decod65a',1)
 
         ftest=abs(freq+a(1)-freq0)
-        if(ftest.lt.ftol) cycle
+!        if(ftest.lt.ftol) then 
+!            print *, "ERROR DECODE", ",", sync2, ",",  freq, ",",  a(1), ",",  a(2) !pdogg
+!
+!            cycle
+!        endif
 
         if(decoded.ne.'                      ') then
 !           print *, decoded 
