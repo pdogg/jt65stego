@@ -67,12 +67,20 @@ def decodewav(wavfile):
 		linecount = sum(1 for _ in f)	# Get linecount
 
 		f.seek(0)	# Reset to start reading from beginning of file
-
-		while linecount >= 3:		
+                error = False 
+		while linecount >= 3 and not error:		
 			symbols = map(int, f.readline().strip().replace("  ", " ").replace("   ", " ").replace("\n", "").strip().split(" "))
 			confidence = map(int, f.readline().strip().replace("   ", " ").replace("  ", " ").replace("\n", "").strip().split(" "))
 			msgandstats = f.readline().strip().replace("\n", "").split(",")
-			jt65msg, s2db, freq, a1, a2 = msgandstats
+			try :
+			  jt65msg, s2db, freq, a1, a2 = msgandstats
+			except :
+			  error = True
+			  jt65msg = "ERROR DECODE"
+			  s2db = "1"
+			  freq = "0"
+			  a1 = "0"
+			  a2 = "0"
 			messages.append([symbols, confidence, jt65msg.strip(), s2db.strip(), freq.strip(), a1.strip(), a2.strip()])
 			linecount = linecount - 3
 
