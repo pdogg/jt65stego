@@ -174,8 +174,9 @@ def output(diffs, packet, distances=False, distancegrid="") :
 def processtextfile(filename, threshold=10) :
 # process a textfile of output above and generate distance / snr / error stats
   rows = []
-  f = open(filename)
-  for row in csv.reader(f) :
+  f = open(filename, "rU")
+  data = csv.reader((line.replace('\0','') for line in f), delimiter=",")
+  for row in data :
     rows.append(row)
   errorcol = col(rows,0)
   snrcol = col(rows,11)
