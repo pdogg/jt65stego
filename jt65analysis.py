@@ -26,6 +26,8 @@ import jt65wrapy
 import numpy as np
 import matplotlib.pyplot as plt
 
+distancedict = {}
+
 def eq(a, b) :
 #for map in checkpacket
   return (a == b)
@@ -47,7 +49,7 @@ def gridtolatlon(grid) :
   lon = (ord(grid[0]) - ord('A')) * 20 - 180
   lat = (ord(grid[1]) - ord('A')) * 10 - 90
   lon += (ord(grid[2]) - ord('0')) * 2
-  lat += (ord(grid[3]) - ord('0')) * 1
+  lat += (ord(grid[3]) - ord('0'))
   
 # move to center of square
   lon += 1
@@ -137,13 +139,13 @@ def checkpacket(packet, verbose=False) :
   return diffs
   
   
-def output(diffs, packet, distances=False, distancegrid="") :
+def output(diffs, packet, distances=False, distancegrid="", homelatlon=[]) :
 # formated output for a packet and some diffs
 # #diffs, totalconfidence, averageconfidence, mediaconfidence, stddevconfidence, averagedistance, s2db, freq, a1, a2, decode
     if distances and not getgrid(distancegrid) :
       print "you asked for distances and gave a bad or no grid... ERROR"
       return False
-    elif distances :
+    elif distances and not homelatlon :
       homelatlon = gridtolatlon(distancegrid)
 
 #SNR logic from jt65a.f90
@@ -158,10 +160,15 @@ def output(diffs, packet, distances=False, distancegrid="") :
     diffdist = 0
     grid = getgrid(packet[2])
     distance = 0
+    
     if distances and grid:
-      gridlatlon = gridtolatlon(grid)
-      distance = distance_on_unit_sphere(gridlatlon[0], gridlatlon[1], homelatlon[0], homelatlon[1])
-      
+      if grid in distancedict :
+	distance = distancedict[grid]
+      else:
+        gridlatlon = gridtolatlon(grid)
+        distance = distance_on_unit_sphere(gridlatlon[0], gridlatlon[1], homelatlon[0], homelatlon[1])
+        distancedict[grid] = distance
+        
     if diffs :
       for dif in diffs:
 	conftotal += dif[3]
@@ -242,7 +249,7 @@ def processtextfile(filename, threshold=10) :
   axheat3.hexbin(errorcol,snrcol, bins='log', gridsize=200, cmap=plt.cm.bone)
   heatplot3.show()
   
-def wavfileinput(filename, verbose=False, dodistance=False, homegrid=""):
+def wavfileinput(filename, verbose=False, dodistance=False, homegrid="", homelatlon=[]):
 # does the analysis for a wav file
     sys.stderr.write("processing: " + filename + "\n")
     packets = jt65wrapy.decodewav(filename)
@@ -251,7 +258,7 @@ def wavfileinput(filename, verbose=False, dodistance=False, homegrid=""):
   
     for packet in packets :  
      diffs=checkpacket(packet, verbose)
-     output(diffs,packet, dodistance, homegrid)
+     output(diffs,packet, dodistance, homegrid, homelatlon)
       
 if __name__ == "__main__":
   
@@ -284,11 +291,13 @@ if __name__ == "__main__":
   
   if args.dir :
     wavlist = glob.glob(args.dir + "/*.wav")
+    if dodistance :
+      homelatlon = gridtolatlon(homegrid)
     if not wavlist :
       print "No .wav files found in : " + args.dir
       sys.exit(99)
     for wav in wavlist :
-      wavfileinput(wav, verbose, dodistance, homegrid)
+      wavfileinput(wav, verbose, dodistance, homegrid, homelatlon)
       
   
 #decode a text file
