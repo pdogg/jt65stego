@@ -71,11 +71,14 @@ subroutine extract(s3,nadd,ncount,nhist,decoded,ltext,nbmkv)
   do nerase=0,ne2,2
      call rs_decode(mrsym,era,nerase,dat4,ncount)
      if(ncount.ge.0) then
-        write(*,1776) mrsymsave
-1776 format(63i3)
-        write(*,1984) mrprobsave
-1984 format(63i4) 
         call unpackmsg(dat4,decoded)
+        if(decoded.ne.'                      ') then
+                write(*,1776) mrsymsave
+1776            format(63i3)
+                write(*,1984) mrprobsave
+1984            format(63i4) 
+
+        endif
         if(iand(dat4(10),8).ne.0) ltext=.true.
         nbmkv=1
         go to 900
