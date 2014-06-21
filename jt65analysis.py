@@ -128,7 +128,6 @@ def checkpacket(packet, verbose=False) :
   symbolmap = map(eq, realmessage, symbols)
   
   diffs = []
-  conftotal = 0
   for i in range(0,63) :
     if not symbolmap[i] :
       diffs.append([ i, symbols[i], realmessage[i], confidence[i] ])    
@@ -278,6 +277,30 @@ def findpacketsbyerror(packets, verbose=False, errormax=10) :
 	
     return returnpackets, returndiffs       
 
+def getgoodconfidence(packets, verbose=False) :
+#takes in a list of packets
+#returns a list of all the confidence values for correct symbols
+  confidences = []
+  for packet in packets :
+    symbols = packet[0]
+    confidence = packet[1]
+  
+    symboltrydecode = copy.deepcopy(symbols)
+    testdecode = jt65wrapy.unprepmsg(symboltrydecode)
+    realmessage = jt65wrapy.prepmsg(testdecode)
+    symbolmap = map(eq, realmessage, symbols)
+ 
+    for i in range(0,63) :
+      if symbolmap[i] :
+        confidences.append( confidence[i] )    
+
+  return confidences
+  
+def spreadgoodconfidence(packet, confidences) :
+#spread confidences in packet replacing exsiting (simulate on air reception)
+  for i in range(0, 63) :
+    packet[1][i] = random.choice(confidences)
+  return packet
 
 def simulateerrors(packet, diffs, numerrors) :
 #simulate numerrors errors in the packet from the population of diffs
