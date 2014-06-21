@@ -19,6 +19,7 @@ import sys
 import glob
 import copy
 import argparse
+import random
 import math
 import csv
 import jt65stego
@@ -251,15 +252,82 @@ def processtextfile(filename, threshold=10) :
   
 def wavfileinput(filename, verbose=False, dodistance=False, homegrid="", homelatlon=[]):
 # does the analysis for a wav file
+# returns the packet array if you want it
     sys.stderr.write("processing: " + filename + "\n")
     packets = jt65wrapy.decodewav(filename)
     if verbose :  
       print packets
-  
+    
     for packet in packets :  
      diffs=checkpacket(packet, verbose)
      output(diffs,packet, dodistance, homegrid, homelatlon)
-      
+    
+    return packets
+ 
+def findpacketsbyerror(packets, verbose=False, errormax=10) :
+#return all the packets and diffs with <= errormax errors
+    
+    returnpackets = []
+    returndiffs = []
+    for packet in packets :
+      diffs = []
+      diffs = checkpacket(packet, verbose)
+      if len(diffs) <= errormax :
+	returnpackets.append(packet)
+	returndiffs += diffs
+	
+    return returnpackets, returndiffs       
+
+
+def simulateerrors(packet, diffs, numerrors) :
+#simulate numerrors errors in the packet from the population of diffs
+     usedpos = []
+     for i in range(0, numerrors) :
+       
+       pos = random.randint(0,63)
+       while pos in usedpos :
+	 pos = random.randint(0,63)
+       diff = random.choice(diffs)
+       print repr(diff) + " " + str(pos)
+       packet[0][pos] = diff[1]
+       packet[1][pos] = diff[3]
+       
+     return packet
+
+def readsimwav(filename) :
+#reads in a text file that simulates the output of ./jt65 to build an array of packets
+	messages = []
+	symbols = []
+	confidence = []
+	jt65msg = ""
+
+	with open(filename, "r") as f:
+		f.seek(0)	# Reset to start reading from beginning of file
+		linecount = sum(1 for _ in f)	# Get linecount
+
+		f.seek(0)	# Reset to start reading from beginning of file
+                error = False 
+		while linecount >= 3 and not error:		
+			symbols = map(int, f.readline().strip().replace("  ", " ").replace("   ", " ").replace("\n", "").strip().split(" "))
+			confidence = map(int, f.readline().strip().replace("   ", " ").replace("  ", " ").replace("\n", "").strip().split(" "))
+			msgandstats = f.readline().strip().replace("\n", "").split(",")
+			try :
+			  jt65msg, s2db, freq, a1, a2 = msgandstats
+			except :
+			  error = True
+			  jt65msg = "ERROR DECODE"
+			  s2db = "1"
+			  freq = "0"
+			  a1 = "0"
+			  a2 = "0"
+			messages.append([symbols, confidence, jt65msg.strip(), s2db.strip(), freq.strip(), a1.strip(), a2.strip()])
+			linecount = linecount - 3
+	return messages
+
+
+
+
+
 if __name__ == "__main__":
   
   parser = argparse.ArgumentParser(description='Packet Analysis tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
