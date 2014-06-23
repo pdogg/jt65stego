@@ -219,19 +219,20 @@ def processtextfile(filename, threshold=10) :
       if entry != 0 :
        distances.append(entry)
   print "	" + str(len(distances)) + " have distance data"
-  print "	Max Distance of Set:			" + str(np.amax(distances))
-  print "	Median Distance of Set:			" + str(np.median(distances)) 
-  print "	Average Distance of Set:		" + str(np.average(distances))
-  print "	90% Distance of Set:			" + str(np.percentile(distances,90))
+  if len(distances) != 0 :
+    print "	Max Distance of Set:			" + str(np.amax(distances))
+    print "	Median Distance of Set:			" + str(np.median(distances)) 
+    print "	Average Distance of Set:		" + str(np.average(distances))
+    print "	90% Distance of Set:			" + str(np.percentile(distances,90))
 
-  distplot = plt.figure()
-  distplot.suptitle('Distances for errors <= ' + str(threshold), fontsize=14, fontweight='bold')
-  axdist = distplot.add_subplot(111)
-  numbins = 10
-  axdist.hist(distances,numbins,color='green',alpha=0.8)
-  distplot.show()
+    distplot = plt.figure()
+    distplot.suptitle('Distances for errors <= ' + str(threshold), fontsize=14, fontweight='bold')
+    axdist = distplot.add_subplot(111)
+    numbins = 10
+    axdist.hist(distances,numbins,color='green',alpha=0.8)
+    distplot.show()
    
-  heatplot = plt.figure()
+  heatplot = plt.figure(facecolor='black')
   heatplot.suptitle('Errors / std(confidence) ', fontsize=14, fontweight='bold')
   axheat = heatplot.add_subplot(111)
   axheat.hexbin(errorcol,col(rows,4), bins='log', gridsize=200, cmap=plt.cm.bone)
@@ -263,7 +264,7 @@ def wavfileinput(filename, verbose=False, dodistance=False, homegrid="", homelat
     
     return packets
  
-def findpacketsbyerror(packets, verbose=False, errormax=10) :
+def findpacketsbyerror(packets, verbose=False, errormax=6) :
 #return all the packets and diffs with <= errormax errors
     
     returnpackets = []
@@ -302,16 +303,17 @@ def spreadgoodconfidence(packet, confidences) :
     packet[1][i] = random.choice(confidences)
   return packet
 
-def simulateerrors(packet, diffs, numerrors) :
+def simulateerrors(packet, diffs, numerrors, verbose=False) :
 #simulate numerrors errors in the packet from the population of diffs
      usedpos = []
      for i in range(0, numerrors) :
        
-       pos = random.randint(0,63)
+       pos = random.randint(0,62)
        while pos in usedpos :
-	 pos = random.randint(0,63)
+	 pos = random.randint(0,62)
        diff = random.choice(diffs)
-       print repr(diff) + " " + str(pos)
+       if verbose:
+        print repr(diff) + " " + str(pos)
        packet[0][pos] = diff[1]
        packet[1][pos] = diff[3]
        
