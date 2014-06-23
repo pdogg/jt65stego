@@ -163,15 +163,15 @@ def output(diffs, packet, distances=False, distancegrid="", homelatlon=[]) :
     
     if distances and grid:
       if grid in distancedict :
-	distance = distancedict[grid]
+	      distance = distancedict[grid]
       else:
         gridlatlon = gridtolatlon(grid)
         distance = distance_on_unit_sphere(gridlatlon[0], gridlatlon[1], homelatlon[0], homelatlon[1])
         distancedict[grid] = distance
         
     if diffs :
-      for dif in diffs:
-	conftotal += dif[3]
+      for dif in diffs :
+        conftotal += dif[3]
         diffdist += abs(dif[1]-dif[2])
       print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(col(diffs,3)))  + ", " + str(np.std(col(diffs,3)))+  ", " + str(diffdist/len(diffs))   +  ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2] 
     else :
@@ -232,7 +232,7 @@ def processtextfile(filename, threshold=10) :
     axdist.hist(distances,numbins,color='green',alpha=0.8)
     distplot.show()
    
-  heatplot = plt.figure(facecolor='black')
+  heatplot = plt.figure()
   heatplot.suptitle('Errors / std(confidence) ', fontsize=14, fontweight='bold')
   axheat = heatplot.add_subplot(111)
   axheat.hexbin(errorcol,col(rows,4), bins='log', gridsize=200, cmap=plt.cm.bone)
@@ -264,7 +264,7 @@ def wavfileinput(filename, verbose=False, dodistance=False, homegrid="", homelat
     
     return packets
  
-def findpacketsbyerror(packets, verbose=False, errormax=6) :
+def findpacketsbyerror(packets, verbose=False, errormax=6, errormin=0) :
 #return all the packets and diffs with <= errormax errors
     
     returnpackets = []
@@ -272,9 +272,9 @@ def findpacketsbyerror(packets, verbose=False, errormax=6) :
     for packet in packets :
       diffs = []
       diffs = checkpacket(packet, verbose)
-      if len(diffs) <= errormax :
-	returnpackets.append(packet)
-	returndiffs += diffs
+      if len(diffs) <= errormax and len(diffs) >= errormin:
+	     returnpackets.append(packet)
+	     returndiffs += diffs
 	
     return returnpackets, returndiffs       
 
@@ -297,10 +297,17 @@ def getgoodconfidence(packets, verbose=False) :
 
   return confidences
   
-def spreadgoodconfidence(packet, confidences) :
+def spreadgoodconfidence(packet, confidences, verbose = False) :
 #spread confidences in packet replacing exsiting (simulate on air reception)
+  if verbose :
+    print packet[1]
+
   for i in range(0, 63) :
     packet[1][i] = random.choice(confidences)
+  
+  if verbose :
+    print packet[1]
+
   return packet
 
 def simulateerrors(packet, diffs, numerrors, verbose=False) :
@@ -310,13 +317,16 @@ def simulateerrors(packet, diffs, numerrors, verbose=False) :
        
        pos = random.randint(0,62)
        while pos in usedpos :
-	 pos = random.randint(0,62)
+	       pos = random.randint(0,62)
        diff = random.choice(diffs)
        if verbose:
         print repr(diff) + " " + str(pos)
        packet[0][pos] = diff[1]
        packet[1][pos] = diff[3]
-       
+     
+     if verbose :
+       print packet
+
      return packet
 
 def readsimwav(filename) :
