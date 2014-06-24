@@ -131,7 +131,8 @@ def checkpacket(packet, verbose=False) :
   for i in range(0,63) :
     if not symbolmap[i] :
       diffs.append([ i, symbols[i], realmessage[i], confidence[i] ])    
-  if verbose :
+
+  if verbose:
     print diffs
     print realmessage
     print symbols
@@ -173,12 +174,12 @@ def output(diffs, packet, distances=False, distancegrid="", homelatlon=[]) :
       for dif in diffs :
         conftotal += dif[3]
         diffdist += abs(dif[1]-dif[2])
-      print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(col(diffs,3)))  + ", " + str(np.std(col(diffs,3)))+  ", " + str(diffdist/len(diffs))   +  ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2] 
+      print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(col(diffs,3)))  + ", " + str(np.std(col(diffs,3)))+  ", " + str(diffdist/len(diffs))   +  ", " + str(np.sum(packet[1])) + ", " + str(np.average(packet[1])) + ", " + str(np.median(packet[1])) + ", " + str(np.std(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2] 
     else :
-      print "0, 0, 0, 0, 0, 0, " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2]   
+      print "0, 0, 0, 0, 0, 0, " + str(np.sum(packet[1])) + ", " + str(np.average(packet[1])) + ", " + str(np.median(packet[1])) + ", " + str(np.std(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2]   
 
       
-def processtextfile(filename, threshold=10) :
+def processtextfile(filename, threshold=7) :
 # process a textfile of output above and generate distance / snr / error stats
   rows = []
   f = open(filename, "rU")
@@ -186,7 +187,7 @@ def processtextfile(filename, threshold=10) :
   for row in data :
     rows.append(row)
   errorcol = col(rows,0)
-  snrcol = col(rows,11)
+  snrcol = col(rows,15)
 
   print "Number of packets in file:			" + str(len(rows))
   print "\n"
@@ -215,7 +216,7 @@ def processtextfile(filename, threshold=10) :
   print "Number of packets in set with " + str(threshold) +" or less errors: " + str(len(inrangepackets))
   
   distances = []
-  for entry in col(inrangepackets,10) :
+  for entry in col(inrangepackets,14) :
       if entry != 0 :
        distances.append(entry)
   print "	" + str(len(distances)) + " have distance data"
@@ -260,7 +261,8 @@ def wavfileinput(filename, verbose=False, dodistance=False, homegrid="", homelat
     
     for packet in packets :  
      diffs=checkpacket(packet, verbose)
-     output(diffs,packet, dodistance, homegrid, homelatlon)
+     if len(diffs) <= 26 :  #need to toss these... offair decoder is better than analysis decoder (we don't have deletions here)
+      output(diffs,packet, dodistance, homegrid, homelatlon)
     
     return packets
  
@@ -313,21 +315,36 @@ def spreadgoodconfidence(packet, confidences, verbose = False) :
 def simulateerrors(packet, diffs, numerrors, verbose=False) :
 #simulate numerrors errors in the packet from the population of diffs
      usedpos = []
+     
      for i in range(0, numerrors) :
        
        pos = random.randint(0,62)
        while pos in usedpos :
 	       pos = random.randint(0,62)
+
        diff = random.choice(diffs)
+      
        if verbose:
         print repr(diff) + " " + str(pos)
        packet[0][pos] = diff[1]
-       packet[1][pos] = diff[3]
-     
+       packet[1][pos] = diff[3] 
      if verbose :
        print packet
-
+     
      return packet
+
+def simulatespecific(packet, population, min, max, verbose=False):
+#simulate a packet's confidence and errors where min <= errors <= max
+# pretty slow... could be optimized but we shouldn't do this very often
+
+  errors = random.randint(min,max)
+ 
+  poppackets, popdiffs = findpacketsbyerror(population, verbose, errors, errors)
+  popconfidences = getgoodconfidence(poppackets, verbose)
+  packet = spreadgoodconfidence(packet, popconfidences, verbose)
+  packet = simulateerrors(packet, popdiffs, errors, verbose)
+  return packet
+
 
 def readsimwav(filename) :
 #reads in a text file that simulates the output of ./jt65 to build an array of packets
