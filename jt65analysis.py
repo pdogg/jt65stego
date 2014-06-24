@@ -290,7 +290,8 @@ def binpacketsbyerror(packets, verbose=False, errormax=26, errormin=0) :
 #return array is [[[[symbols, confidence, packet data, [diffs]],[symbols, confidence, packet data, [diffs]],[...]...]
   returnbins = []
   for i in range(errormin, errormax+1) :
-    print i
+    if verbose :
+      print i
     returnbins.append([])
     rangepackets, rangediffs = findpacketsbyerror(packets, verbose, i, i)
     for rangepacket in rangepackets :
@@ -368,6 +369,8 @@ def simulatespecific(packet, population, errors, verbose=False):
 #simulate a packet's confidence and errors from the population of packets
   
   simpacket = random.choice(population)
+  if len(simpacket[7]) != errors :
+    print "SIMULATESPECIFIC: simpacket has different diffs than errors - This probably isn't what you want"
   if verbose:
     print packet
     print simpacket
