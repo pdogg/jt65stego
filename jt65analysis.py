@@ -174,9 +174,14 @@ def output(diffs, packet, distances=False, distancegrid="", homelatlon=[]) :
       for dif in diffs :
         conftotal += dif[3]
         diffdist += abs(dif[1]-dif[2])
-      print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(col(diffs,3)))  + ", " + str(np.std(col(diffs,3)))+  ", " + str(diffdist/len(diffs))   +  ", " + str(np.sum(packet[1])) + ", " + str(np.average(packet[1])) + ", " + str(np.median(packet[1])) + ", " + str(np.std(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2] 
+      print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(col(diffs,3)))  +  \
+        ", " + str(np.std(col(diffs,3)))+  ", " + str(diffdist/len(diffs))   +  ", " + str(np.sum(packet[1])) + ", " + str(np.average(packet[1])) + \
+        ", " + str(np.median(packet[1])) + ", " + str(np.std(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + \
+        packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2] 
     else :
-      print "0, 0, 0, 0, 0, 0, " + str(np.sum(packet[1])) + ", " + str(np.average(packet[1])) + ", " + str(np.median(packet[1])) + ", " + str(np.std(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2]   
+      print "0, 0, 0, 0, 0, 0, " + str(np.sum(packet[1])) + ", " + str(np.average(packet[1])) + ", " + str(np.median(packet[1])) + ", " + \
+      str(np.std(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + \
+      str(snr)  + ", " + packet[2]   
 
       
 def processtextfile(filename, threshold=7) :
@@ -280,6 +285,31 @@ def findpacketsbyerror(packets, verbose=False, errormax=6, errormin=0) :
 	
     return returnpackets, returndiffs       
 
+def binpacketsbyerror(packets, verbose=False, errormax=26, errormin=0) :
+#bin up packets in a multi dimensional array/list with errormax-errormin bins
+#return array is [[[[symbols, confidence, packet data, [diffs]],[symbols, confidence, packet data, [diffs]],[...]...]
+  returnbins = []
+  for i in range(errormin, errormax+1) :
+    print i
+    returnbins.append([])
+    rangepackets, rangediffs = findpacketsbyerror(packets, verbose, i, i)
+    for rangepacket in rangepackets :
+      diffs = checkpacket(rangepacket,verbose)
+      if len(diffs) != i :
+        print "CRITICAL EXCEPTION BIN " + str(i)
+        print rangepacket
+        print diffs
+      rangepacket.append(diffs)
+      returnbins[i].append(rangepacket)
+  if verbose :
+    print "bin: " + str(i) 
+    print "packets: " + str(len(returnbins[i]))
+
+  return returnbins
+
+
+
+
 def getgoodconfidence(packets, verbose=False) :
 #takes in a list of packets
 #returns a list of all the confidence values for correct symbols
@@ -298,6 +328,7 @@ def getgoodconfidence(packets, verbose=False) :
         confidences.append( confidence[i] )    
 
   return confidences
+
   
 def spreadgoodconfidence(packet, confidences, verbose = False) :
 #spread confidences in packet replacing exsiting (simulate on air reception)
@@ -333,17 +364,27 @@ def simulateerrors(packet, diffs, numerrors, verbose=False) :
      
      return packet
 
-def simulatespecific(packet, population, min, max, verbose=False):
-#simulate a packet's confidence and errors where min <= errors <= max
-# pretty slow... could be optimized but we shouldn't do this very often
-
-  errors = random.randint(min,max)
- 
-  poppackets, popdiffs = findpacketsbyerror(population, verbose, errors, errors)
-  popconfidences = getgoodconfidence(poppackets, verbose)
-  packet = spreadgoodconfidence(packet, popconfidences, verbose)
-  packet = simulateerrors(packet, popdiffs, errors, verbose)
-  return packet
+def simulatespecific(packet, population, errors, verbose=False):
+#simulate a packet's confidence and errors from the population of packets
+  
+  simpacket = random.choice(population)
+  if verbose:
+    print packet
+    print simpacket
+  retpacket = copy.deepcopy(packet)
+  retpacket[1] = simpacket[1]
+  retpacket[3] = simpacket[3]
+  retpacket[4] = simpacket[4]
+  retpacket[5] = simpacket[5]
+  retpacket[6] = simpacket[6]
+  retpacket[7] = simpacket[7]
+  
+  for diff in simpacket[7] :
+    retpacket[0][diff[0]] = diff[1]
+    retpacket[1][diff[0]] = diff[3]
+  if verbose:
+    print retpacket
+  return retpacket
 
 
 def readsimwav(filename) :
