@@ -36,6 +36,10 @@ def eq(a, b) :
 def col(a, i):
     return [float(row[i]) for row in a]
 
+def mad(data, axis=None):
+#Mean Absolute Deviation Calculation
+    return np.mean(np.absolute(data - np.mean(data, axis)), axis)
+
 def selecterrors(errors, a):
   rows = [] 
   for row in a :
@@ -176,11 +180,11 @@ def output(diffs, packet, distances=False, distancegrid="", homelatlon=[]) :
         diffdist += abs(dif[1]-dif[2])
       print str(len(diffs)) +  ", " + str(conftotal) + ", " + str( float(conftotal) / float(len(diffs))) + ", " + str(np.median(col(diffs,3)))  +  \
         ", " + str(np.std(col(diffs,3)))+  ", " + str(diffdist/len(diffs))   +  ", " + str(np.sum(packet[1])) + ", " + str(np.average(packet[1])) + \
-        ", " + str(np.median(packet[1])) + ", " + str(np.std(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + \
+        ", " + str(np.median(packet[1])) + ", " + str(np.std(packet[1])) + ", " + str(mad(col(diffs,3))) + ", " + str(mad(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + \
         packet[6] + ", " + str(distance) + ", " + str(snr)  + ", " + packet[2] 
     else :
       print "0, 0, 0, 0, 0, 0, " + str(np.sum(packet[1])) + ", " + str(np.average(packet[1])) + ", " + str(np.median(packet[1])) + ", " + \
-      str(np.std(packet[1])) + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + \
+      str(np.std(packet[1])) + ", " + "0 " + ", " + str(mad(packet[1]))  + ", " + packet[3]  +  ", " + packet[4] +  ", " + packet[5] +  ", " + packet[6] + ", " + str(distance) + ", " + \
       str(snr)  + ", " + packet[2]   
 
       
@@ -192,7 +196,7 @@ def processtextfile(filename, threshold=7) :
   for row in data :
     rows.append(row)
   errorcol = col(rows,0)
-  snrcol = col(rows,15)
+  snrcol = col(rows,17)
 
   print "Number of packets in file:			" + str(len(rows))
   print "\n"
@@ -221,7 +225,7 @@ def processtextfile(filename, threshold=7) :
   print "Number of packets in set with " + str(threshold) +" or less errors: " + str(len(inrangepackets))
   
   distances = []
-  for entry in col(inrangepackets,14) :
+  for entry in col(inrangepackets,16) :
       if entry != 0 :
        distances.append(entry)
   print "	" + str(len(distances)) + " have distance data"
@@ -255,6 +259,18 @@ def processtextfile(filename, threshold=7) :
   axheat3 = heatplot3.add_subplot(111)
   axheat3.hexbin(errorcol,snrcol, bins='log', gridsize=200, cmap=plt.cm.bone)
   heatplot3.show()
+
+  heatplot4= plt.figure()
+  heatplot4.suptitle('Errors / MAD(diffconf) ', fontsize=14, fontweight='bold')
+  axheat4 =  heatplot4.add_subplot(111)
+  axheat4.hexbin(errorcol,col(rows,10), bins='log', gridsize=200, cmap=plt.cm.bone)
+  heatplot4.show()
+
+  heatplot5 = plt.figure()
+  heatplot5.suptitle('Errors / MAD(conf) ', fontsize=14, fontweight='bold')
+  axheat5 =  heatplot5.add_subplot(111)
+  axheat5.hexbin(errorcol,col(rows,11), bins='log', gridsize=200, cmap=plt.cm.bone)
+  heatplot5.show()
   
 def wavfileinput(filename, verbose=False, dodistance=False, homegrid="", homelatlon=[]):
 # does the analysis for a wav file
@@ -308,6 +324,26 @@ def binpacketsbyerror(packets, verbose=False, errormax=26, errormin=0) :
 
   return returnbins
 
+def signalbins(packets, verbose=False) :
+# return some bins count information for packet symbols, error symbols and error locations
+#np.bincount(errorcol, None, 63)
+  
+  symbols = [0] * 64
+  errorsymbols  = [0] * 64
+  locations  = [0] * 63
+  for packet in packets :
+    packet.append(checkpacket(packet, verbose))
+    packetsymbols = np.bincount(packet[0], None, 64)
+    symbols = np.add(symbols, packetsymbols)
+   
+    if len(packet[7]):
+   
+      packeterrorsymbols = np.bincount(col(packet[7], 1), None, 64)
+      errorsymbols = np.add(errorsymbols, packeterrorsymbols)
+      packetlocations = np.bincount(col(packet[7], 0), None, 63)
+      locations = np.add(locations, packetlocations)
+  
+  return symbols, errorsymbols, locations
 
 
 
