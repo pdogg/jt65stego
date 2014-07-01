@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # basic "stats analysis" of jt65 symbol sets/packets
 # Copyright 2014 - Paul Drapeau and Brent Dukes
 
