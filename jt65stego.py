@@ -69,11 +69,11 @@ def getnoisekey(password, length=20) :
 #I AM NOT A CRYPTOGRAPHER I HAVE NO IDEA IF THIS IS SAFE
 #THIS FEATURE LEAKS BITS OF THE sha512 HASH OF THE PASSWORD!!!
 #returns a "noisekey" given a password
-#md5 hashes the password and then uses it to determine the key (insertion locations on the stego)
+#hashes the password and then uses it to determine the key (insertion locations on the stego)
 #returns FALSE if no valid key can be obtained
 #set length based on the length of key you want (12 for no_fec, 20 for stego with fec)
-   output = np.array(range(length),dtype=np.int32) #array to return
-   
+  # output = [np.array(range(length),dtype=np.int32)] #array to return
+   output = []
    sha512calc = hashlib.sha512()
    sha512calc.update(password)
    passwordhash = sha512calc.digest()
@@ -87,8 +87,9 @@ def getnoisekey(password, length=20) :
       passwordhash = sha512calc.digest()
       hashindex = 0
     potentialsymbol = int(struct.unpack("B",passwordhash[hashindex])[0]) % 63
+
     if potentialsymbol not in output :
-      output[keyindex] = potentialsymbol
+      output.append(potentialsymbol)
       keyindex += 1
     hashindex += 1  
     if keyindex == length :
