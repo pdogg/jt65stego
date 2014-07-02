@@ -109,6 +109,42 @@ def jt65tobytes(jt65bytes):
 	output[6] = (jt65bytes[8] & 0x3F) << 2 | (jt65bytes[9] & 0x30) >> 4
 	output[7] = (jt65bytes[9] & 0x0F) << 4 | (jt65bytes[10] & 0x3C) >> 2 
 	output[8] = (jt65bytes[10] & 0x03) << 6 | (jt65bytes[11] & 0x3F)
+
+	#Perform the BITMAGIC!!!!
+	replacedbit0 = output[1] & 0x80
+	replacedbit1 = output[2] & 0x40
+	replacedbit2 = output[3] & 0x20
+	replacedbit3 = output[4] & 0x10
+	replacedbit4 = output[5] & 0x08
+	replacedbit5 = output[6] & 0x04
+	replacedbit6 = output[7] & 0x02
+	replacedbit7 = output[8] & 0x01
+	statusbit0 = output[0] & 0x80
+	statusbit1 = output[0] & 0x40
+	statusbit2 = output[0] & 0x20
+	statusbit3 = output[0] & 0x10
+	statusbit4 = output[0] & 0x08
+	statusbit5 = output[0] & 0x04
+	statusbit6 = output[0] & 0x02
+	statusbit7 = output[0] & 0x01
+	output[1] = (output[1] & 0x7F) | statusbit0
+	output[2] = (output[2] & 0xBF) | statusbit1
+	output[3] = (output[3] & 0xDF) | statusbit2
+	output[4] = (output[4] & 0xEF) | statusbit3
+	output[5] = (output[5] & 0xF7) | statusbit4
+	output[6] = (output[6] & 0xFB) | statusbit5
+	output[7] = (output[7] & 0xFD) | statusbit6
+	output[8] = (output[8] & 0xFE) | statusbit7
+	output[0] = 0
+	output[0] = output[0] | replacedbit0
+	output[0] = output[0] | replacedbit1
+	output[0] = output[0] | replacedbit2
+	output[0] = output[0] | replacedbit3
+	output[0] = output[0] | replacedbit4
+	output[0] = output[0] | replacedbit5
+	output[0] = output[0] | replacedbit6
+	output[0] = output[0] | replacedbit7
+
 	return output
 
 def bytestojt65(bytes):
@@ -130,6 +166,43 @@ def bytestojt65(bytes):
 
 def bytes8tojt65(bytes, status):
 #Unpacks 8 full bytes plus a status byte to 12 byte JT65 message
+
+	#Perform the BITMAGIC!!!!
+	replacedbit0 = bytes[0] & 0x80
+	replacedbit1 = bytes[1] & 0x40
+	replacedbit2 = bytes[2] & 0x20
+	replacedbit3 = bytes[3] & 0x10
+	replacedbit4 = bytes[4] & 0x08
+	replacedbit5 = bytes[5] & 0x04
+	replacedbit6 = bytes[6] & 0x02
+	replacedbit7 = bytes[7] & 0x01
+	statusbit0 = status & 0x80
+	statusbit1 = status & 0x40
+	statusbit2 = status & 0x20
+	statusbit3 = status & 0x10
+	statusbit4 = status & 0x08
+	statusbit5 = status & 0x04
+	statusbit6 = status & 0x02
+	statusbit7 = status & 0x01
+	bytes[0] = (bytes[0] & 0x7F) | statusbit0
+	bytes[1] = (bytes[1] & 0xBF) | statusbit1
+	bytes[2] = (bytes[2] & 0xDF) | statusbit2
+	bytes[3] = (bytes[3] & 0xEF) | statusbit3
+	bytes[4] = (bytes[4] & 0xF7) | statusbit4
+	bytes[5] = (bytes[5] & 0xFB) | statusbit5
+	bytes[6] = (bytes[6] & 0xFD) | statusbit6
+	bytes[7] = (bytes[7] & 0xFE) | statusbit7
+	status = 0
+	status = status | replacedbit0
+	status = status | replacedbit1
+	status = status | replacedbit2
+	status = status | replacedbit3
+	status = status | replacedbit4
+	status = status | replacedbit5
+	status = status | replacedbit6
+	status = status | replacedbit7
+	
+	#Now do the packing to 6 bit symbols
 	output = np.array(range(12),dtype=np.int32)
 	output[0] = status >> 2
 	output[1] = (status & 0x03) << 4 | (bytes[0] & 0xF0) >> 4
@@ -143,6 +216,7 @@ def bytes8tojt65(bytes, status):
 	output[9] = (bytes[5] & 0x03) << 4 | (bytes[6] & 0xF0) >> 4
 	output[10] = (bytes[6] & 0x0F) << 2 | (bytes[7] & 0xC0) >> 6
 	output[11] = bytes[7] & 0x3F
+
 	return output
 
 def jt65encodemessages(jt65msgs, verbose=False):
