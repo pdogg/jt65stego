@@ -114,22 +114,24 @@ def jt65tobytes(jt65bytes):
 
 	return output
 
-# def bytestojt65(bytes):
-# #Unpacks 9 full bytes to 12 byte JT65 message
-# 	output = np.array(range(12),dtype=np.int32)
-# 	output[0] = bytes[0] >> 2
-# 	output[1] = (bytes[0] & 0x03) << 4 | (bytes[1] & 0xF0) >> 4
-# 	output[2] = (bytes[1] & 0x0F) << 2 | (bytes[2] & 0xC0) >> 6
-# 	output[3] = bytes[2] & 0x3F
-# 	output[4] = bytes[3] >> 2
-# 	output[5] = (bytes[3] & 0x03) << 4 | (bytes[4] & 0xF0) >> 4
-# 	output[6] = (bytes[4] & 0x0F) << 2 | (bytes[5] & 0xC0) >> 6
-# 	output[7] = bytes[5] & 0x3F
-# 	output[8] = bytes[6] >> 2
-# 	output[9] = (bytes[6] & 0x03) << 4 | (bytes[7] & 0xF0) >> 4
-# 	output[10] = (bytes[7] & 0x0F) << 2 | (bytes[8] & 0xC0) >> 6
-# 	output[11] = bytes[8] & 0x3F
-# 	return output
+def bytestojt65(bytes):
+#Unpacks 9 full bytes to 12 byte JT65 message
+	bytes[1:], bytes[0] = statusbitswap(bytes[1:], bytes[0])
+
+	output = np.array(range(12),dtype=np.int32)
+	output[0] = bytes[0] >> 2
+	output[1] = (bytes[0] & 0x03) << 4 | (bytes[1] & 0xF0) >> 4
+	output[2] = (bytes[1] & 0x0F) << 2 | (bytes[2] & 0xC0) >> 6
+	output[3] = bytes[2] & 0x3F
+	output[4] = bytes[3] >> 2
+	output[5] = (bytes[3] & 0x03) << 4 | (bytes[4] & 0xF0) >> 4
+	output[6] = (bytes[4] & 0x0F) << 2 | (bytes[5] & 0xC0) >> 6
+	output[7] = bytes[5] & 0x3F
+	output[8] = bytes[6] >> 2
+	output[9] = (bytes[6] & 0x03) << 4 | (bytes[7] & 0xF0) >> 4
+	output[10] = (bytes[7] & 0x0F) << 2 | (bytes[8] & 0xC0) >> 6
+	output[11] = bytes[8] & 0x3F
+	return output
 
 def bytes8tojt65(bytes, status):
 #Unpacks 8 full bytes plus a status byte to 12 byte JT65 message
