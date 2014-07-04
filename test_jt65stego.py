@@ -66,6 +66,24 @@ class TestStegFunctions(unittest.TestCase):
 			jt65result = jts.bytestojt65(randombytes)
 			self.assertNotEqual(jt65result.tolist(), randombytes.tolist())
 
+	def test_StatusBitSwap(self):
+		for i in range(RANDOM_TEST_LOOP_COUNT):
+			randombytes = np.array([random.randint(0, 255) for r in range(9)])
+			swappedbytes = np.array(range(9),dtype=np.int32)
+			returnbytes = np.array(range(9),dtype=np.int32)
+			swappedbytes[1:], swappedbytes[0] = jts.statusbitswap(randombytes[1:], randombytes[0])
+			returnbytes[1:], returnbytes[0] = jts.statusbitswap(swappedbytes[1:], swappedbytes[0])
+			self.assertEqual(len(randombytes), len(returnbytes))
+			self.assertEqual(randombytes.tolist(), returnbytes.tolist())
+
+	def test_StatusBitSwapNegative(self):
+		for i in range(RANDOM_TEST_LOOP_COUNT):
+			randombytes = np.array([random.randint(0, 255) for r in range(9)])
+			swappedbytes = np.array(range(9),dtype=np.int32)
+			swappedbytes[1:], swappedbytes[0] = jts.statusbitswap(randombytes[1:], randombytes[0])
+			self.assertEqual(len(randombytes), len(swappedbytes))
+			self.assertNotEqual(randombytes.tolist(), swappedbytes.tolist())
+
 	def test_JT65EncodeMessages(self):
 		msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44"]
 		expectedresult = [np.array([39,19,16,44,29,13,58,19,13,14,20,44,17,20,25,31,46, 2,29,35,56,17,11,20,39,
