@@ -45,6 +45,13 @@ class TestStegFunctions(unittest.TestCase):
 		for i in range(len(result)):
 			self.assertTrue(result[i], expectedresult.tolist()[i])
 
+	def test_Pack(self):
+		bytes = [255, 0, 0, 0, 0, 0, 0, 0, 0]
+		expectedresult = np.array([0x00, 0x08, 0x01, 0x00, 0x20, 0x04, 0x02, 0x00, 0x10, 0x08, 0x01, 0x00])
+		result = jts.bytestojt65(bytes)
+		self.assertEqual(len(result), len(expectedresult))
+		self.assertEqual(result.tolist(), expectedresult.tolist())
+
 	def test_PackUnpack(self):
 		for i in range(RANDOM_TEST_LOOP_COUNT):
 			randomJT65bytes = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(12)])
