@@ -45,11 +45,27 @@ class TestStegFunctions(unittest.TestCase):
 		for i in range(len(result)):
 			self.assertTrue(result[i], expectedresult.tolist()[i])
 
+	def test_Pack(self):
+		bytes = [255, 0, 0, 0, 0, 0, 0, 0, 0]
+		expectedresult = np.array([0x00, 0x08, 0x01, 0x00, 0x20, 0x04, 0x02, 0x00, 0x10, 0x08, 0x01, 0x00])
+		result = jts.bytestojt65(bytes)
+		self.assertEqual(len(result), len(expectedresult))
+		self.assertEqual(result.tolist(), expectedresult.tolist())
+
 	def test_PackUnpack(self):
 		for i in range(RANDOM_TEST_LOOP_COUNT):
 			randomJT65bytes = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(12)])
 			byteresult = jts.jt65tobytes(randomJT65bytes)
 			jt65result = jts.bytestojt65(byteresult)
+			self.assertEqual(len(byteresult), 9)
+			self.assertEqual(len(jt65result), 12)
+			self.assertEqual(jt65result.tolist(), randomJT65bytes.tolist())
+
+	def test_PackUnpackB(self):
+		for i in range(RANDOM_TEST_LOOP_COUNT):
+			randomJT65bytes = np.array([random.randint(0,JT65_MAX_SYMBOL) for r in range(12)])
+			byteresult = jts.jt65tobytes(randomJT65bytes)
+			jt65result = jts.bytes8tojt65(byteresult[1:], byteresult[0])
 			self.assertEqual(len(byteresult), 9)
 			self.assertEqual(len(jt65result), 12)
 			self.assertEqual(jt65result.tolist(), randomJT65bytes.tolist())
@@ -65,6 +81,24 @@ class TestStegFunctions(unittest.TestCase):
 			randombytes = np.array([random.randint(0,0xFF) for r in range(9)])
 			jt65result = jts.bytestojt65(randombytes)
 			self.assertNotEqual(jt65result.tolist(), randombytes.tolist())
+
+	def test_StatusBitSwap(self):
+		for i in range(RANDOM_TEST_LOOP_COUNT):
+			randombytes = np.array([random.randint(0, 255) for r in range(9)])
+			swappedbytes = np.array(range(9),dtype=np.int32)
+			returnbytes = np.array(range(9),dtype=np.int32)
+			swappedbytes[1:], swappedbytes[0] = jts.statusbitswap(randombytes[1:], randombytes[0])
+			returnbytes[1:], returnbytes[0] = jts.statusbitswap(swappedbytes[1:], swappedbytes[0])
+			self.assertEqual(len(randombytes), len(returnbytes))
+			self.assertEqual(randombytes.tolist(), returnbytes.tolist())
+
+	def test_StatusBitSwapNegative(self):
+		for i in range(RANDOM_TEST_LOOP_COUNT):
+			randombytes = np.array([random.randint(0, 255) for r in range(9)])
+			swappedbytes = np.array(range(9),dtype=np.int32)
+			swappedbytes[1:], swappedbytes[0] = jts.statusbitswap(randombytes[1:], randombytes[0])
+			self.assertEqual(len(randombytes), len(swappedbytes))
+			self.assertNotEqual(randombytes.tolist(), swappedbytes.tolist())
 
 	def test_JT65EncodeMessages(self):
 		msgs = ["KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44", "KA1AAB KB2BBC DD44", "KB2BBC KA1AAB DD44"]
@@ -209,20 +243,20 @@ class TestStegFunctions(unittest.TestCase):
 
 	def test_CreateCipher_XOR(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "XOR", "XOR rox and all that jazz", "", "", False)
-		expectedresult = [np.array([9, 45, 15, 32, 17, 23, 39, 15, 32, 33, 48, 10, 5, 0, 0, 49, 8, 3, 24, 0]), np.array([8, 20, 52, 58, 43, 55, 6, 50, 0, 37, 13, 28, 44, 7, 24, 14, 58, 26, 17, 4])]
+		expectedresult = [np.array([27, 20, 48, 2, 31, 48, 33, 42, 0, 9, 48, 10, 5, 0, 0, 49, 8, 11, 24, 0]), np.array([55, 48, 18, 20, 31, 6, 56, 34, 27, 37, 13, 28, 20, 49, 52, 41, 15, 13, 46, 27])]
 		self.assertEqual(len(expectedresult), len(result))
 		self.assertEqual(result[0].tolist(), expectedresult[0].tolist())	# Cannot verify second list due to random byte padding at end of XOR cipher
 
 	def test_CreateCipher_ARC4(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "ARC4", "RC4 is the most secure algorithm in the world", "", "", False)
-		expectedresult = [np.array([5, 18, 39, 8, 41, 12, 9, 20, 32, 44, 25, 53, 53, 37, 31, 1, 1, 11, 39, 47]), np.array([54, 61, 22, 35, 39, 18, 61, 28, 0, 16, 47, 5, 14, 48, 32, 50, 5, 25, 27, 41])]
+		expectedresult = [np.array([1, 19, 25, 35, 19, 32, 46, 12, 62, 60, 24, 53, 21, 33, 29, 1, 1, 11, 38, 47]), np.array([60, 22, 15, 21, 4, 42, 5, 24, 16, 48, 46, 5, 14, 48, 32, 50, 5, 17, 27, 41])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
 
 	def test_CreateCipher_AES_ECB(self):
 		result = jts.createciphermsgs(2, "DEF CON 22", "AES", "AES is totes secure, right? Yeah", "", "ECB", False)
-		expectedresult = [np.array([35, 60, 43, 19, 23, 55, 39, 13, 32, 42, 35, 51, 56, 46, 33, 50, 21, 13, 41, 61]), np.array([33, 16, 25, 6, 19, 8, 11, 0, 0, 20, 26, 16, 36, 8, 6, 62, 60, 32, 24, 61])]
+		expectedresult = [np.array([36, 4, 41, 24, 13, 59, 33, 52, 61, 58, 34, 51, 24, 42, 33, 50, 5, 13, 40, 61]), np.array([21, 19, 6, 19, 31, 6, 40, 34, 11, 4, 26, 16, 4, 8, 4, 62, 44, 32, 25, 61])]
 		self.assertEqual(len(expectedresult), len(result))
 		for i in range(len(expectedresult)):
 			self.assertEqual(result[i].tolist(), expectedresult[i].tolist())
@@ -257,11 +291,11 @@ class TestStegFunctions(unittest.TestCase):
 		self.assertEqual(result.rstrip(), "BEACON FTW AND DEF CON 22")
 
 	def test_DecipherSteg_ARC4(self):
-		stegdata = [np.array([35, 36, 29, 45, 39, 33, 48, 7, 0, 12, 25, 53, 53, 37, 31, 1, 1, 11, 39, 47]), np.array([54, 61, 22, 35, 39, 18, 61, 28, 0, 16, 47, 5, 14, 48, 32, 50, 5, 25, 27, 41])]
+		stegdata = [np.array([1, 19, 25, 35, 19, 32, 46, 12, 62, 60, 24, 53, 21, 33, 29, 1, 1, 11, 38, 47]), np.array([60, 22, 15, 21, 4, 42, 5, 24, 16, 48, 46, 5, 14, 48, 32, 50, 5, 17, 27, 41])]
 		result = jts.deciphersteg(stegdata, "ARC4", "RC4 is the most secure algorithm in the world", "", False)
 		self.assertEqual(result.rstrip(), "DEF CON 22")
 
 	def test_DecipherSteg_AES_ECB(self):
-		stegdata = [np.array([5, 10, 17, 54, 25, 26, 30, 30, 0, 10, 35, 51, 56, 46, 33, 50, 21, 13, 41, 61]), np.array([33, 16, 25, 6, 19, 8, 11, 0, 0, 20, 26, 16, 36, 8, 6, 62, 60, 32, 24, 61])]
+		stegdata = [np.array([36, 4, 41, 24, 13, 59, 33, 52, 61, 58, 34, 51, 24, 42, 33, 50, 5, 13, 40, 61]), np.array([21, 19, 6, 19, 31, 6, 40, 34, 11, 4, 26, 16, 4, 8, 4, 62, 44, 32, 25, 61])]
 		result = jts.deciphersteg(stegdata, "AES", "AES is totes secure, right? Yeah", "ECB", False)
 		self.assertEqual(result.rstrip(), "DEF CON 22")

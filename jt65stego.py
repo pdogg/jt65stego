@@ -109,10 +109,15 @@ def jt65tobytes(jt65bytes):
 	output[6] = (jt65bytes[8] & 0x3F) << 2 | (jt65bytes[9] & 0x30) >> 4
 	output[7] = (jt65bytes[9] & 0x0F) << 4 | (jt65bytes[10] & 0x3C) >> 2 
 	output[8] = (jt65bytes[10] & 0x03) << 6 | (jt65bytes[11] & 0x3F)
+
+	output[1:], output[0] = statusbitswap(output[1:], output[0])
+
 	return output
 
 def bytestojt65(bytes):
 #Unpacks 9 full bytes to 12 byte JT65 message
+	bytes[1:], bytes[0] = statusbitswap(bytes[1:], bytes[0])
+
 	output = np.array(range(12),dtype=np.int32)
 	output[0] = bytes[0] >> 2
 	output[1] = (bytes[0] & 0x03) << 4 | (bytes[1] & 0xF0) >> 4
@@ -130,6 +135,10 @@ def bytestojt65(bytes):
 
 def bytes8tojt65(bytes, status):
 #Unpacks 8 full bytes plus a status byte to 12 byte JT65 message
+
+	bytes, status = statusbitswap(bytes, status)
+	
+	#Now do the packing to 6 bit symbols
 	output = np.array(range(12),dtype=np.int32)
 	output[0] = status >> 2
 	output[1] = (status & 0x03) << 4 | (bytes[0] & 0xF0) >> 4
@@ -143,7 +152,45 @@ def bytes8tojt65(bytes, status):
 	output[9] = (bytes[5] & 0x03) << 4 | (bytes[6] & 0xF0) >> 4
 	output[10] = (bytes[6] & 0x0F) << 2 | (bytes[7] & 0xC0) >> 6
 	output[11] = bytes[7] & 0x3F
+
 	return output
+
+def statusbitswap(eightbytes, status):
+#Swaps the 8 bits of the status byte into one bit each of the data
+# bytes provided, to make the distribution of 6-bit symbols in the
+# steganography more even
+#By alternating the first two bits of the data bytes, the 6-bit 
+# symbols get the bits distributed amongst all 6 bits in the symbols
+
+	returnstatus = 0
+	returnbytes = np.array(range(8),dtype=np.int32)
+
+	replacedbit0 = eightbytes[0] & 0x80
+	replacedbit1 = eightbytes[1] & 0x40
+	replacedbit2 = eightbytes[2] & 0x80
+	replacedbit3 = eightbytes[3] & 0x40
+	replacedbit4 = eightbytes[4] & 0x80
+	replacedbit5 = eightbytes[5] & 0x40
+	replacedbit6 = eightbytes[6] & 0x80
+	replacedbit7 = eightbytes[7] & 0x40
+	returnbytes[0] = (eightbytes[0] & 0x7F) | (status & 0x80)
+	returnbytes[1] = (eightbytes[1] & 0xBF) | (status & 0x40)
+	returnbytes[2] = (eightbytes[2] & 0x7F) | ((status & 0x20) << 2)
+	returnbytes[3] = (eightbytes[3] & 0xBF) | ((status & 0x10) << 2)
+	returnbytes[4] = (eightbytes[4] & 0x7F) | ((status & 0x08) << 4)
+	returnbytes[5] = (eightbytes[5] & 0xBF) | ((status & 0x04) << 4)
+	returnbytes[6] = (eightbytes[6] & 0x7F) | ((status & 0x02) << 6)
+	returnbytes[7] = (eightbytes[7] & 0xBF) | ((status & 0x01) << 6)
+	returnstatus = returnstatus | replacedbit0
+	returnstatus = returnstatus | replacedbit1
+	returnstatus = returnstatus | (replacedbit2 >> 2)
+	returnstatus = returnstatus | (replacedbit3 >> 2)
+	returnstatus = returnstatus | (replacedbit4 >> 4)
+	returnstatus = returnstatus | (replacedbit5 >> 4)
+	returnstatus = returnstatus | (replacedbit6 >> 6)
+	returnstatus = returnstatus | (replacedbit7 >> 6)
+
+	return returnbytes, returnstatus
 
 def jt65encodemessages(jt65msgs, verbose=False):
 #Encode valid text into array of JT65 data
