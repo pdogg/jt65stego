@@ -461,7 +461,7 @@ def readsimwav(filename) :
 
 if __name__ == "__main__":
   
-  parser = argparse.ArgumentParser(description='Packet Analysis tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
+  parser = argparse.ArgumentParser(description='Packet Analysis tools for JT65 messages.', epilog="Transmitting deceptive message over amateur radio in the US is a violation of FCC regulations")
   
   groupSource = parser.add_argument_group("Source")
   groupCommands = parser.add_argument_group("Commands")
