@@ -94,7 +94,8 @@ Decode Input:
 
 ```
 usage: jt65analysis.py [-h] [--distance <gridloc>] [--file <filename>]
-                       [--dir <dirname>] [--text <textfile>] [--verbose]
+                       [--simfile <filename>] [--dir <dirname>]
+                       [--text <textfile>] [--verbose]
 
 Packet Analysis tools for JT65 messages.
 
@@ -103,6 +104,8 @@ optional arguments:
 
 Source:
   --file <filename>     Read from and parse wav file
+  --simfile <filename>  Read from and parse a text file containing jt65
+                        decodes
   --dir <dirname>       Read from and parse all wav files in a given path
   --text <textfile>     Read from and parse a text file for distance and snr
                         stats
@@ -112,8 +115,38 @@ Commands:
 
 Options:
   --distance <gridloc>  calc distance from grid
+
+Transmitting deceptive message over amateur radio in the US is a violation of
+FCC regulations
+
 ```
 
+Primarily this tool manipulates a packet data structure which is implemented as a python list as follows [[63 packet
+symbols], [63 confidence values], decoded JT65 message, s2db from decoder, freq from decoder, a1 from decoder, a2 from
+decoder, [list of diffs where a diff is [location, received symbol, expected symbol, confidence]]]
+
+Input methods include reading a .wav file with the --file option, a text file containing a series of the three line
+outputs from the ./jt65 binary with the --simfile option and a complete folder of .wav files with the --dir option.
+
+These modes of operation also take in a --distance argument which calculates distance from the maidenhead grid location
+provided where possible based on grid location information found in the packets.
+
+The –text option can be used to read in this processed output and produce graphics based on the statistical calculations
+performed. 
+
+```
+Examples:
+python jt65analysis.py --distance DD42 --simfile 20mdecodes.txt
+python jt65analysis.py --distance DD42 --file ./140527_0930.wav
+python jt65analysis.py --distance DD42 --text outputfrompreviousstep.txt
+```
+
+Other functions are usable by importing the jt65analysis module. The most useful of which for analysis purposes are the
+binpacketsbyerror and signalbins functions which will return packets and packet counts “binned” by various parameters.
+
+The functions getgoodconfidence, spreadgoodconfidence, simulateerrors, and simulatespecific are used in crafting packet
+characteristics from actual received datasets. These functions were used in various distance and error condition
+simulations.
 
 Credits, Thanks, and License Notes
 ==================================
