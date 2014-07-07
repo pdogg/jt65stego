@@ -19,28 +19,30 @@ Dependencies
 You'll need a fortran and c compiler (most of our testing was done with gcc version 4.7.2 on Debian Wheezy, although
 we have made this work on Raspian, Ubuntu 14.04, Ubuntu 13.10)
 
-python 2.7 
+Debian Wheezy Required Additional Packages:
+```
+gfortran
+libfftw3-dev
 python-dev
 python-crypto
 python-gnupg
-python-scipy
 python-colorama
-libfftw3-dev
-pulseaudio
-
+python-matplotlib
+````
 
 Build Instructions
 ====================
 
 After installing dependencies "make all" in this directory should build the required library and binary from lib/
 
-JT65.so - f2py binding library for the jt65 pack/unpack and Reed Solomon encode/decode
-jt65 - Demodulation binary, reads in .wav file and outputs symbols and confidence for processing
+* JT65.so - f2py binding library for the jt65 pack/unpack and Reed Solomon encode/decode
+* jt65 - Demodulation binary, reads in .wav file and outputs symbols and confidence for processing
 
-make f2pylib
-make jt65
+To build these components independently if needed:
 
-Will build these components independently if needed
+* make f2pylib
+* make jt65
+
 
 
 Basic Usage
