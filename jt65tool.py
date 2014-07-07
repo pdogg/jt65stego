@@ -164,7 +164,7 @@ def getstatusbyte(steglist):
 	return steglist[0]
 
 # Command line argument setup
-parser = argparse.ArgumentParser(description='Steganography tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
+parser = argparse.ArgumentParser(description='Steganography tools for JT65 messages.', epilog="Transmitting deceptive message over amateur radio in the US is a violation of FCC regulations")
 groupCommands = parser.add_argument_group("Commands")
 groupOptions = parser.add_argument_group("Options")
 groupEncryption = parser.add_argument_group("Encryption")
