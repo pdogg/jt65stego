@@ -459,8 +459,6 @@ def readsimwav(filename) :
 
 
 
-
-
 if __name__ == "__main__":
   
   parser = argparse.ArgumentParser(description='Packet Analysis tools for JT65 messages.', epilog="Transmitting hidden messages over amateur radio is prohibited by U.S. law.")
@@ -470,6 +468,7 @@ if __name__ == "__main__":
   groupOptions = parser.add_argument_group("Options")
   groupOptions.add_argument('--distance', metavar='<gridloc>', help='calc distance from grid')
   groupSource.add_argument('--file', metavar='<filename>', help='Read from and parse wav file')
+  groupSource.add_argument('--simfile', metavar='<filename>', help='Read from and parse a text file containing jt65 decodes')
   groupSource.add_argument('--dir', metavar='<dirname>', help='Read from and parse all wav files in a given path')
   groupSource.add_argument('--text', metavar='<textfile>', help='Read from and parse a text file for distance and snr stats')
   groupCommands.add_argument('--verbose', action='store_true', help='verbosity')
@@ -489,6 +488,19 @@ if __name__ == "__main__":
 #decode a wav file    
   if args.file : 
     wavfileinput(args.file, verbose, dodistance, homegrid) 
+#read in decodes
+  if args.simfile : 
+    messages = readsimwav(args.simfile)
+    if verbose :  
+      print messages
+    if dodistance :
+      homelatlon = gridtolatlon(homegrid)
+    for packet in messages :  
+     diffs=checkpacket(packet, verbose)
+     if len(diffs) <= 26 :  #need to toss these... offair decoder is better than analysis decoder (we don't have deletions here)
+      output(diffs,packet, dodistance, homegrid, homelatlon)
+
+
   
   if args.dir :
     wavlist = glob.glob(args.dir + "/*.wav")
