@@ -702,6 +702,8 @@ class TestWav(unittest.TestCase):
 			symbols2, confidence2, wavmsg2, s2db, freq, a1, a2 = result2[0]
 			os.remove("test_output-000.wav")
 			os.remove("test_output-001.wav")
+			os.remove("test_output-002.wav")
+			os.remove("test_output-003.wav")
 			finalresultmsgs = [symbols1, symbols2]
 			stegdata = jts.retrievesteg(finalmsgs, hidekey, False)
 			resultstegmsg = jts.deciphersteg(stegdata, "OTP", "I LOVE SECURITY AND STUFF", "", False)
