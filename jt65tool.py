@@ -23,15 +23,27 @@ STEG_DETECTION_ERROR_THRESHOLD = 17
 hidekey = []
 
 def ValidateArguments(args):
+#Kick you out if you entered some invalid argument combination
 	if args.encode and args.decode:
 		print("Cannot use both --encode and --decode at the same time!")
 		sys.exit(0)
 
-	if args.interactive and args.batch:
-		print("Cannot use both --interactive and --batch at the same time!")
+	if args.interactive and args.encode:
+		print("Cannot use both --interactive and --encode at the same time!")
+		sys.exit(0)
+
+	if args.interactive and args.decode:
+		print("Cannot use both --interactive and --decode at the same time!")
+		sys.exit(0)
+
+	if not args.interactive and not args.encode and not args.decode:
+		print("Nothing to do, use --encode, --decode, or --interactive")
+		print("or --help to see all available options")
 		sys.exit(0)
 
 def SetArgumentDefaults(args):
+#Set some defaults we didn't want to set using argparse since they
+#are dependent on other arguments
 	if not args.stdout and not args.wavout:
 		args.stdout = True
 
@@ -56,7 +68,7 @@ def processoutput(finalmsgs, stdout, wavout, wsjt, verbose):
 			wavout = wavout[:-4]
 
 		for index,value in enumerate(finalmsgs):
-			filename = wavout + "-" + str(index).zfill(3) + ".wav"
+			filename = wavout + "-" + str(index).zfill(3) + ".wav"	#Creates -000.wav, -001.wav, etc
 
 			if verbose:
 				print "Generating audio file " + str(index) + " : " + filename
@@ -71,14 +83,14 @@ def processinput(stdin, wavin, verbose):
 	if stdin:
 		stdinput = sys.stdin.readlines()
 
-		n = 0 
+		n = 0 	#Used to track which message you are on, if multiple messages were input at one time
 
 		for index,value in enumerate(stdinput):
 			if value.startswith("["):				#Filter to only JT65 messages, allows usage with output from --encode --verbose
 				if verbose:
 					print "Raw Message " + str(n) + " : " + value
 
-				numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')
+				numpymsg = np.fromstring(value.replace('[','').replace(']',''), dtype=int, sep=' ')	#Parses strings from the --stdout option
 				JT65data.append(numpymsg)
 				n = n + 1
 
@@ -99,6 +111,7 @@ def processinput(stdin, wavin, verbose):
 	return JT65data
 
 def performwavdecode(filename, stegcollection):
+#Decode a single wav file
 	containssteg = False
 	messages = jt65sound.inputwavfile(filename, verbose=args.verbose)
 
@@ -137,6 +150,8 @@ def performwavdecode(filename, stegcollection):
 			print "\n" + colorama.Fore.RED + "Steg detected! " + colorama.Fore.YELLOW + stegstatus + colorama.Fore.RESET
 
 def getstegresult(stegcollection, cipher, key, aesmode, verbose):
+#Decodes an entire series of steg messages, or notifies you if you have
+#some steg messages but are awaiting more transmissions to decode
 	if cipher == "none":
 		return True, "", True, jts.deciphersteg(stegcollection, cipher, key, aesmode, verbose, False)	#Steg has already been unprepped
 
@@ -173,17 +188,16 @@ groupDecodeInput = parser.add_argument_group("Decode Input")
 groupCommands.add_argument('--encode', action='store_true', help='Encode msg(s)')
 groupCommands.add_argument('--decode', action='store_true', help='Decode msg(s)')
 groupOptions.add_argument('--noise', type=int, default=0, metavar='<noise>', help='Amount of cover noise to insert (default: 0)')
-groupOptions.add_argument('--interactive', action='store_true', help='Interactive mode, prompt user for msgs (default)')
-groupOptions.add_argument('--batch', action='store_true', help='Batch mode, msgs must be parameters at command line')
-groupOptions.add_argument('--jt65msg', metavar='<message1(,message2)(,message3)...>', help='Message to encode in JT65 (batch mode)')
-groupOptions.add_argument('--stegmsg', metavar='<message>', help='Message to hide in result (batch mode)')
+groupOptions.add_argument('--interactive', action='store_true', help='Interactive mode, monitor audio line in and decode')
+groupOptions.add_argument('--jt65msg', metavar='<message1(,message2)(,message3)...>', help='Message to encode in JT65')
+groupOptions.add_argument('--stegmsg', metavar='<message>', help='Message to hide in result')
 groupOptions.add_argument('--verbose', action='store_true', help='Verbose output')
 groupEncryption.add_argument('--cipher', default='none', metavar='<type>', choices=['none', 'XOR', 'ARC4', 'AES', 'GPG', 'OTP'], help='Supported ciphers are none, XOR, ARC4, AES, GPG, OTP (default: none)')
-groupEncryption.add_argument('--key', metavar='<key>', help='Cipher/steg symbol key (batch mode)')
+groupEncryption.add_argument('--key', metavar='<key>', help='Cipher/steg symbol key')
 groupEncryption.add_argument('--recipient', metavar='<user>', help='Recipient for GPG mode')
 groupEncryption.add_argument('--aesmode', default='ECB', metavar='<mode>', choices=['ECB', 'CBC', 'CFB'], help='Supported modes are ECB, CBC, CFB (default: ECB)')
 groupEncodeOutput.add_argument('--stdout', action='store_true', help='Output to terminal (default)')
-groupEncodeOutput.add_argument('--wavout', metavar='<file1.wav>', help='Output to wav file(s) - Multiple files suffix -001.wav, -002.wav...')
+groupEncodeOutput.add_argument('--wavout', metavar='<file1.wav>', help='Output to wav file(s) - Multiple files suffix -000.wav, -001.wav...')
 groupEncodeOutput.add_argument('--wsjt', action='store_true', help='Output wav file compatible with WSJT instead of WSJT-X')
 groupDecodeInput.add_argument('--stdin', action='store_true', help='Input from stdin (default)')
 groupDecodeInput.add_argument('--wavin', metavar='<file1.wav(,file2.wav)(,file3.wav)...>', help='Input from wav file(s)')
@@ -202,7 +216,7 @@ else:
 	hidekey = jts.getnoisekey(args.key)
 
 # Batch encode
-if args.batch and args.encode:
+if args.encode:
 	#Create array of your valid JT65 text
 	jt65msgs = args.jt65msg.split(',')
 

@@ -95,6 +95,7 @@ def getnoisekey(password, length=20) :
     hashindex += 1  
     if keyindex == length :
       donthavekey = False
+
    return output
 
 def jt65tobytes(jt65bytes):
@@ -110,6 +111,7 @@ def jt65tobytes(jt65bytes):
 	output[7] = (jt65bytes[9] & 0x0F) << 4 | (jt65bytes[10] & 0x3C) >> 2 
 	output[8] = (jt65bytes[10] & 0x03) << 6 | (jt65bytes[11] & 0x3F)
 
+	#Unswap the status bit that gets swapped during the packing of bytes to JT65 symbols
 	output[1:], output[0] = statusbitswap(output[1:], output[0])
 
 	return output
@@ -136,6 +138,7 @@ def bytestojt65(bytes):
 def bytes8tojt65(bytes, status):
 #Unpacks 8 full bytes plus a status byte to 12 byte JT65 message
 
+	#Perform the status bit swap to more evenly distribute the symbols used for errors
 	bytes, status = statusbitswap(bytes, status)
 	
 	#Now do the packing to 6 bit symbols
@@ -161,7 +164,19 @@ def statusbitswap(eightbytes, status):
 # steganography more even
 #By alternating the first two bits of the data bytes, the 6-bit 
 # symbols get the bits distributed amongst all 6 bits in the symbols
-
+#
+#Example bytes: 00000000 00000000 00000000 00000000
+#               00000000 00000000 00000000 00000000
+#Example status:11111111
+#
+#Output bytes: 10000000 01000000 10000000 01000000
+#              10000000 01000000 10000000 01000000
+#Output status:00000000
+#
+#When packed to JT65 symbols looks like this:
+# 000000 001000 000001 000000 100000 000100
+# 000010 000000 010000 001000 000001 000000
+#
 	returnstatus = 0
 	returnbytes = np.array(range(8),dtype=np.int32)
 
@@ -222,6 +237,7 @@ def decodemessages(jt65data, verbose=False):
 	return jt65msgs
 
 def otp_ascii_int_to_otp_int(charint):
+#Converts ASCII codes into symbols usable for one time pad
 	if charint == 32:
 		return 0
 
@@ -235,6 +251,7 @@ def otp_ascii_int_to_otp_int(charint):
 	sys.exit(0)
 
 def otp_otp_int_to_ascii_int(charint):
+#Converts one time pad symbols into their ASCII counterparts
 	if charint == 0:
 		return 32
 
@@ -248,6 +265,7 @@ def otp_otp_int_to_ascii_int(charint):
 	sys.exit(0)
 
 def otp_encode(stegmsg, key):
+#Perform one time pad encoding
 	encodedmsg = ""
 
 	if len(key) < len(stegmsg):
@@ -263,6 +281,7 @@ def otp_encode(stegmsg, key):
 	return encodedmsg
 
 def otp_decode(stegmsg, key):
+#Perform one time pad decoding
 	decodedmsg = ""
 
 	while len(key) < len(stegmsg):
@@ -279,6 +298,7 @@ def otp_decode(stegmsg, key):
 	return decodedmsg
 
 def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, verbose=False):
+#Creates the JT65 symbols used for steganography, including the requested cipher
 	ciphermsgs = []
 
 	if cipher == "none":
@@ -302,6 +322,8 @@ def createciphermsgs(jt65msgcount, stegmsg, cipher, key, recipient, aesmode, ver
 	return None
 
 def createciphermsgs_none(jt65msgcount, stegmsg, verbose=False):
+#Packs hidden message into JT65 symbols with no cipher
+
 	ciphermsgs = []
 
 	#Can we fit your hidden message?
@@ -323,6 +345,8 @@ def createciphermsgs_none(jt65msgcount, stegmsg, verbose=False):
 	return ciphermsgs
 
 def createciphermsgs_packer_xor(totalpackets, originallength, ciphermsgs, cipherlist, verbose=False):
+#Packs hidden message into JT65 symbols with XOR cipher
+
 	for index in range(totalpackets):
 		#Determine how many bytes are in this message
 		if originallength >= 8:
@@ -356,6 +380,8 @@ def createciphermsgs_packer_xor(totalpackets, originallength, ciphermsgs, cipher
 		ciphermsgs.append(secretjtfec)
 
 def createciphermsgs_packer_other(totalpackets, ciphermsgs, cipherlist, verbose=False):
+#Packs hidden message into JT65 symbols with all the other available ciphers
+
 	for index in range(totalpackets):
 		status = 0
 		if index == 0:
@@ -376,6 +402,8 @@ def createciphermsgs_packer_other(totalpackets, ciphermsgs, cipherlist, verbose=
 		ciphermsgs.append(secretjtfec)
 
 def createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose=False):
+#Performs the actual XOR cipher
+
 	ciphermsgs = []
 
 	#Can we fit your hidden message?
@@ -405,6 +433,8 @@ def createciphermsgs_xor(jt65msgcount, stegmsg, key, verbose=False):
 	return ciphermsgs
 
 def createciphermsgs_arc4(jt65msgcount, stegmsg, key, verbose=False):
+#Performs the actual ARC4 cipher
+
 	ciphermsgs = []
 
 	#Can we fit your hidden message?
@@ -434,6 +464,8 @@ def createciphermsgs_arc4(jt65msgcount, stegmsg, key, verbose=False):
 	return ciphermsgs
 
 def createciphermsgs_aes(jt65msgcount, stegmsg, key, aesmode, verbose=False):
+#Performs the actual AES encryption
+
 	ciphermsgs = []
 
 	#Check key size
@@ -481,6 +513,8 @@ def createciphermsgs_aes(jt65msgcount, stegmsg, key, aesmode, verbose=False):
 	return ciphermsgs
 
 def createciphermsgs_gpg(jt65msgcount, stegmsg, recipient, verbose=False):
+#Performs the actual GPG encryption
+
 	ciphermsgs = []
 
 	while len(stegmsg) % 8:
@@ -514,6 +548,8 @@ def createciphermsgs_gpg(jt65msgcount, stegmsg, recipient, verbose=False):
 	return ciphermsgs
 
 def createciphermsgs_otp(jt65msgcount, stegmsg, key, verbose=False):
+#Performs the actual one time pad cipher
+
 	ciphermsgs = []
 
 	#Can we fit your hidden message?

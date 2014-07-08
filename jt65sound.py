@@ -107,6 +107,8 @@ def outputwavfile(filename, tones, mode=1):
   return filename
 
 def inputwavfile(filename, verbose=False):
+#Performs decoding of JT65 wav file
+
   messages = jt.decodewav(filename)
 
   if verbose:
