@@ -97,13 +97,13 @@ FCC regulations
 
 ```
 This module provides the bulk of the actual functionality for encoding and decoding JT65 messages which may or may not
-contain steganography. The –encode and –decode command line options are used to encode and decode JT65 packets 
-respectively. In the encoding mode –jt65msg specifies the message(s) to be encoded and the output can be sent to stdout 
-or wav files with the –stdout and –wavout. Stdout output is formated as a list of symbols as integers.
+contain steganography. The --encode and --decode command line options are used to encode and decode JT65 packets 
+respectively. In the encoding mode --jt65msg specifies the message(s) to be encoded and the output can be sent to stdout 
+or wav files with the --stdout and --wavout. Stdout output is formated as a list of symbols as integers.
 
-Basic steganography can be added to JT65 packets by specifying the –stegmsg and –key options on encode and a –key option 
-in decode. --cipher and –aesmode are used to define encryption ciphers and modes in the case of AES to add encryption to 
-the steganography message as specified in the help output. 
+Basic steganography can be added to JT65 packets by specifying the --stegmsg and --key options on encode and a --key 
+option in decode. --cipher and --aesmode are used to define encryption ciphers and modes in the case of AES to add 
+encryption to the steganography message as specified in the help output. 
 
 Example basic steganography encode and decode via stdout:
 ```
