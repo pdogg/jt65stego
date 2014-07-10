@@ -116,6 +116,38 @@ Decoded JT65 message 0 : KA1AAB KB2BBC DD44
 Hidden message : DEFCONFTW 
 ```
 
+Example steganography with ciphers, wav file input and output and multiple packet messages:
+```
+
+$ ./jt65tool.py --encode --jt65msg "ka1aab kb2bbc dd44","ka1aab kb2bbc dd44"  --stegmsg "DEFCONFTW" --key "PDOGGTHEDUKEZIP" --cipher ARC4 --wavout test
+
+$ ./jt65tool.py --decode --key "PDOGGTHEDUKEZIP" --cipher ARC4 --wavin test-000.wav,test-001.wav
+
+Decoded JT65 message 0 : KA1AAB KB2BBC DD44   
+
+Decoded JT65 message 1 : KA1AAB KB2BBC DD44   
+
+Hidden message : DEFCONFTW       
+
+$ ./jt65tool.py --encode --jt65msg "ka1aab kb2bbc dd44","ka1aab kb2bbc dd44","ka1aab kb2bbc dd44","ka1aab kb2bbc dd44"  --stegmsg "DEFCONFTW" --key "PDOGGTHEDUKEZIP1" --cipher AES --aesmode CBC --wavout test
+
+$ ./jt65tool.py --decode --key "PDOGGTHEDUKEZIP1" --cipher AES --aesmode CBC --wavin test-000.wav,test-001.wav,test-002.wav,test-003.wav
+Decoded JT65 message 0 : KA1AAB KB2BBC DD44   
+
+Decoded JT65 message 1 : KA1AAB KB2BBC DD44   
+
+Decoded JT65 message 2 : KA1AAB KB2BBC DD44   
+
+Decoded JT65 message 3 : KA1AAB KB2BBC DD44   
+
+Hidden message : DEFCONFTW       
+ 
+```
+The --wsjt flag will specify output which can be imported into the WSJT JT65 client. There should be no difference in
+onair performance but the original WSJT and WSJT-X tools have different bitrates required in the imported wav files. 
+jt65tool.py defaults to the WSJT-X file format as the WSJT-X tool is the more modern maintained client. --wsjt is
+provided for backwards compatibility
+
 
 ```
 usage: jt65analysis.py [-h] [--distance <gridloc>] [--file <filename>]
