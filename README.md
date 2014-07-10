@@ -50,7 +50,7 @@ Basic Usage
 
 ```
 usage: jt65tool.py [-h] [--encode] [--decode] [--noise <noise>]
-                   [--interactive] [--batch]
+                   [--interactive]
                    [--jt65msg <message1,message2)(,message3)...>]
                    [--stegmsg <message>] [--verbose] [--cipher <type>]
                    [--key <key>] [--recipient <user>] [--aesmode <mode>]
@@ -68,31 +68,54 @@ Commands:
 
 Options:
   --noise <noise>       Amount of cover noise to insert (default: 0)
-  --interactive         Interactive mode, prompt user for msgs (default)
-  --batch               Batch mode, msgs must be parameters at command line
+  --interactive         Interactive mode, monitor audio line in and decode
   --jt65msg <message1(,message2)(,message3)...>
-                        Message to encode in JT65 (batch mode)
-  --stegmsg <message>   Message to hide in result (batch mode)
+                        Message to encode in JT65
+  --stegmsg <message>   Message to hide in result
   --verbose             Verbose output
 
-Encryption:
-  --cipher <type>       Supported ciphers are none, XOR, ARC4, AES, GPG, OTP
-                        (default: none)
-  --key <key>           Cipher/steg symbol key (batch mode)
-  --recipient <user>    Recipient for GPG mode
-  --aesmode <mode>      Supported modes are ECB, CBC, CFB (default: ECB)
-
-Encode Output:
+Encryption:                                                                                                                                                                      
+  --cipher <type>       Supported ciphers are none, XOR, ARC4, AES, GPG, OTP                                                                                                     
+                        (default: none)                                                                                                                                          
+  --key <key>           Cipher/steg symbol key                                                                                                                                   
+  --recipient <user>    Recipient for GPG mode                                                                                                                                   
+  --aesmode <mode>      Supported modes are ECB, CBC, CFB (default: ECB)                                                                                                         
+                                                                                                                                                                                 
+Encode Output:                                                                                                                                                                   
   --stdout              Output to terminal (default)
   --wavout <file1.wav>  Output to wav file(s) - Multiple files suffix
-                        -001.wav, -002.wav...
+                        -000.wav, -001.wav...
   --wsjt                Output wav file compatible with WSJT instead of WSJT-X
 
 Decode Input:
   --stdin               Input from stdin (default)
   --wavin <file1.wav(,file2.wav)(,file3.wav)...>
                         Input from wav file(s)
+
+Transmitting deceptive message over amateur radio in the US is a violation of
+FCC regulations
+
 ```
+This module provides the bulk of the actual functionality for encoding and decoding JT65 messages which may or may not
+contain steganography. The –encode and –decode command line options are used to encode and decode JT65 packets 
+respectively. In the encoding mode –jt65msg specifies the message(s) to be encoded and the output can be sent to stdout 
+or wav files with the –stdout and –wavout. Stdout output is formated as a list of symbols as integers.
+
+Basic steganography can be added to JT65 packets by specifying the –stegmsg and –key options on encode and a –key option 
+in decode. --cipher and –aesmode are used to define encryption ciphers and modes in the case of AES to add encryption to 
+the steganography message as specified in the help output. 
+
+Example basic steganography encode and decode via stdout:
+```
+$ ./jt65tool.py --encode --jt65msg "ka1aab kb2bbc DD44" --stegmsg "DEFCONFTW" --key "PDOGGTHEDUKEZIP"
+[ 1 33 46 42 32  8 40 15 13 54 56 41 33  6  5 10 29 29 34 10 53 33  3 43 17 51 29 38 19 58 55  9 50 62 26 61  0 52 51 20 25 58 61 28 53 29 46 48 10 25 11 30 16 20 47  6  0 43  6 18 38  3 29]
+$ ./jt65tool.py --encode --jt65msg "ka1aab kb2bbc DD44" --stegmsg "DEFCONFTW" --key "PDOGGTHEDUKEZIP" --stdout | ./jt65tool.py --decode --key "PDOGGTHEDUKEZIP" --stdin
+
+Decoded JT65 message 0 : KA1AAB KB2BBC DD44   
+
+Hidden message : DEFCONFTW 
+```
+
 
 ```
 usage: jt65analysis.py [-h] [--distance <gridloc>] [--file <filename>]
