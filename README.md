@@ -1,5 +1,5 @@
-jt65stego
-=========
+jt65stego - v1.0 July 2014
+==========================
 
 This tool has been developed by pdogg and thedukezip for the purposes of theoretical study and education on the topic
 of steganography in the JT65 amateur radio protocol. 
