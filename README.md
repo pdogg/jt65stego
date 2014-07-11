@@ -31,7 +31,6 @@ python-matplotlib
 ```
 Installation on Raspian Requires the Following Additional Packages:
 ```
-build-essential
 gfortran
 libfftw3-dev
 python-dev
