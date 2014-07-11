@@ -163,6 +163,12 @@ provided for backwards compatibility
 NOTE: No key derivation function is applied to the key for any cipher mode. If you require a key derived by such methods
 do so before the key is passed to the tool or module. Encryption is done with the key given as the key used.
 
+The --interactive mode will begin "listening" to the default audio input and decoding JT65 or JT65 stego signals in real 
+time. This mode of operation requires a syncronized clock as JT65 transmissions begin at the top of a minute. The 
+interactive mode supports the --cipher --aesmode and --key options and if none are provided will receive and decode plain
+JT65 according to the protocol specification.
+
+
 ```
 usage: jt65analysis.py [-h] [--distance <gridloc>] [--file <filename>]
                        [--simfile <filename>] [--dir <dirname>]
