@@ -160,6 +160,8 @@ onair performance but the original WSJT and WSJT-X tools have different bitrates
 jt65tool.py defaults to the WSJT-X file format as the WSJT-X tool is the more modern maintained client. --wsjt is
 provided for backwards compatibility
 
+NOTE: No key derivation function is applied to the key for any cipher mode. If you require a key derived by such methods
+do so before the key is passed to the tool or module. Encryption is done with the key given as the key used.
 
 ```
 usage: jt65analysis.py [-h] [--distance <gridloc>] [--file <filename>]
