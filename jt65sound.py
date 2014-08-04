@@ -26,6 +26,7 @@ import wave
 import sys
 import struct
 import jt65wrapy as jt
+import jt65soundlookup as jtl
 
 
 def tone(number, m=1, offset=0):
@@ -121,6 +122,78 @@ def outputwavfile(filename, tones, mode=1):
         for s in sine_list_x:
             packed_value = struct.pack('h', int(s * amp / 2))
             values.append(packed_value)
+
+    # Finish out the minute with silence for the decoders to be happy with the
+    # .wav file
+    for i in range(0, (framerate * 59) - (126 * data_size)):
+        values.append(packed_zeros)
+
+    # Write to file
+    value_str = ''.join(values)
+    wav_file.writeframes(value_str)
+    wav_file.close()
+
+    return filename
+
+
+def outputwavfilequick(filename, tones):
+ # Creates .wav file with tones for broadcast
+ # or for decoding in JT-65 tools
+ # Uses a lookup table to generate the wav file very fast
+ #
+ # Only creates wav file quickly under the following conditions:
+ #   WSJTX mode (no WSJT compatibility)
+ #   JT65A
+ #   Sync tone at 1270.5 Hz
+
+    data_size = 4464  # samples per jt65 symbol
+    frate = 12000.0  # framerate as a float
+
+    wav_file = wave.open(filename, "w")
+
+    amp = 1000.0     # multiplier for amplitude
+    nchannels = 1
+    sampwidth = 2
+    framerate = int(frate)
+    nframes = frate * 60  # one full minute of audio
+    comptype = "NONE"
+    compname = "not compressed"
+
+    values = []
+    packed_zeros = struct.pack('h', int(0))
+
+    wav_file.setparams(
+        (nchannels, sampwidth, framerate, nframes, comptype, compname))
+
+    # Create a list of the 126 symbols for audio with 'S' representing the sync tone
+    output = [0] * 126
+    messageindex = 0
+    # the mystic 'pseudo-random sequence"
+    syncvector = [
+        1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0,
+        0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1]
+    for x in range(0, 126):
+        if syncvector[x] == 1:
+            output[x] = 'S'
+        else:
+            output[x] = tones[messageindex]
+            messageindex += 1
+
+    # Enjoy 1 second of silence (jt65 specs say start tx 1 sec after start of
+    # min)
+    for i in range(0, framerate):
+        values.append(packed_zeros)
+
+    # Generate the 126 tones for the wav file
+    for index in range(0, 126):
+        if output[index] == 'S':
+            for s in jtl.toneSync:
+                packed_value = struct.pack('h', s)
+                values.append(packed_value)
+        else:
+            for s in jtl.toneTable[output[index]]:
+                packed_value = struct.pack('h', s)
+                values.append(packed_value)
 
     # Finish out the minute with silence for the decoders to be happy with the
     # .wav file

@@ -68,7 +68,7 @@ def SetArgumentDefaults(args):
         args.stdin = True
 
 
-def processoutput(finalmsgs, stdout, wavout, wsjt, verbose):
+def processoutput(finalmsgs, stdout, wavout, wsjt, freq, mode, verbose):
 # Send JT65 messages to output specified by user
     if stdout:
         np.set_printoptions(linewidth=300)
@@ -78,9 +78,17 @@ def processoutput(finalmsgs, stdout, wavout, wsjt, verbose):
 
     if wavout:
         wavmode = 1  # Set mode to WSJT-X
+        offset = freq - 1270.5
+        jt65mode = 1
 
         if wsjt:
             wavmode = 0
+
+        if mode == 'B':
+            jt65mode = 2
+
+        elif mode == 'C':
+            jt65mode = 4
 
         if wavout.endswith('.wav'):
             wavout = wavout[:-4]
@@ -92,8 +100,12 @@ def processoutput(finalmsgs, stdout, wavout, wsjt, verbose):
             if verbose:
                 print "Generating audio file " + str(index) + " : " + filename
 
-            tones = jt65sound.toneswithsync(value)
-            jt65sound.outputwavfile(filename, tones, wavmode)
+            if wavmode == 1 and freq == 1270.5 and mode == 'A':
+                jt65sound.outputwavfilequick(filename, value)
+
+            else:
+                tones = jt65sound.toneswithsync(value, jt65mode, offset)
+                jt65sound.outputwavfile(filename, tones, wavmode)
 
 
 def processinput(stdin, wavin, verbose):
@@ -231,6 +243,11 @@ groupOptions.add_argument(
 groupOptions.add_argument(
     '--stegmsg', metavar='<message>', help='Message to hide in result')
 groupOptions.add_argument(
+    '--freq', type=float, default='1270.5', metavar='<freq>', help='Base frequency for transmission (default: 1270.5)')
+groupOptions.add_argument(
+    '--mode', default='A', metavar='<mode>', choices=[
+        'A', 'B', 'C'], help='Supported JT65 modes are A, B, and C (default: A)')
+groupOptions.add_argument(
     '--verbose', action='store_true', help='Verbose output')
 groupEncryption.add_argument('--cipher', default='none', metavar='<type>', choices=[
                              'none', 'XOR', 'ARC4', 'AES', 'GPG', 'OTP'], help='Supported ciphers are none, XOR, ARC4, AES, GPG, OTP (default: none)')
@@ -290,7 +307,7 @@ if args.encode:
                 jts.randomcover(msg, [], args.noise, args.verbose))
 
     # Send to output
-    processoutput(finalmsgs, args.stdout, args.wavout, args.wsjt, args.verbose)
+    processoutput(finalmsgs, args.stdout, args.wavout, args.wsjt, args.freq, args.mode, args.verbose)
 
 # Decode
 elif args.decode:
