@@ -14,6 +14,9 @@ Subpart A—General Provisions
 (a) No amateur station shall transmit:
 (4) Music using a phone emission except as specifically provided elsewhere in this section; communications intended to facilitate a criminal act; messages encoded for the purpose of obscuring their meaning, except as otherwise provided herein; obscene or indecent words or language; or false or deceptive messages, signals or identification.
 
+This tool was presented at DEF CON 22 - Slides and Materials can be found at:
+https://github.com/pdogg/DEFCON22_HF_Steganography
+
 Dependencies
 ============
 You'll need a fortran and c compiler (most of our testing was done with gcc version 4.7.2 on Debian Wheezy, although
